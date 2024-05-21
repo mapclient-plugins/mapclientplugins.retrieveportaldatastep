@@ -109,9 +109,7 @@ class ConfigureDialog(QtWidgets.QDialog):
         identifier over the whole of the workflow.
         """
         self._previousIdentifier = self._ui.lineEdit0.text()
-        config = {}
-        config['identifier'] = self._ui.lineEdit0.text()
-        config['outputDir'] = self._output_location()
+        config = {'identifier': self._ui.lineEdit0.text(), 'outputDir': self._output_location()}
         if self._previousLocation:
             config['previous_location'] = os.path.relpath(self._previousLocation, self._workflow_location)
         else:

@@ -66,7 +66,7 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         :param index: Index of the port to return.
         """
         # http://physiomeproject.org/workflow/1.0/rdf-schema#directory_location
-        return self._view._get_output_files()
+        return self._view.get_output_files()
 
     def configure(self):
         """

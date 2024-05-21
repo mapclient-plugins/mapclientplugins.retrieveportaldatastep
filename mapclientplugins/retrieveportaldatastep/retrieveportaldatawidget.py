@@ -126,7 +126,7 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         '''
         result = self._scicrunch_service.search_portal_data(json.loads(query))
 
-    def _get_output_files(self):
+    def get_output_files(self):
         return [os.path.join(self._output_dir, f) for f in os.listdir(self._output_dir) if os.path.isfile(os.path.join(self._output_dir, f))]
 
     def _done_button_clicked(self):
