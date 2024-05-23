@@ -95,85 +95,10 @@
        </property>
       </spacer>
      </item>
-     <item>
-      <widget class="QPushButton" name="pushButtonExportVTK">
-       <property name="text">
-        <string>Export VTK</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboBoxAnalyse">
-       <item>
-        <property name="text">
-         <string>heart</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>lung</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>stomach</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>kidney</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>colon</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>skin</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="pushButtonAnalyse">
-       <property name="text">
-        <string>Analyse</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
     </layout>
    </item>
    <item>
     <widget class="QTreeView" name="treeViewFileBrowser">
-
     </widget>
    </item>
    <item>
