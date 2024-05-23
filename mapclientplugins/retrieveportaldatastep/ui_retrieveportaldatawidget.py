@@ -15,10 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QComboBox, QFormLayout,
-    QGroupBox, QHBoxLayout, QHeaderView, QLabel,
-    QLineEdit, QPushButton, QSizePolicy, QSpacerItem,
-    QTableView, QTreeView, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFormLayout, QGroupBox,
+    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
+    QPushButton, QSizePolicy, QSpacerItem, QTableView,
+    QTreeView, QVBoxLayout, QWidget)
 
 class Ui_RetrievePortalDataWidget(object):
     def setupUi(self, RetrievePortalDataWidget):
@@ -82,35 +82,6 @@ class Ui_RetrievePortalDataWidget(object):
 
         self.horizontalLayout.addItem(self.horizontalSpacer)
 
-        self.pushButtonExportVTK = QPushButton(RetrievePortalDataWidget)
-        self.pushButtonExportVTK.setObjectName(u"pushButtonExportVTK")
-
-        self.horizontalLayout.addWidget(self.pushButtonExportVTK)
-
-        self.horizontalSpacer_2 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        self.horizontalLayout.addItem(self.horizontalSpacer_2)
-
-        self.comboBoxAnalyse = QComboBox(RetrievePortalDataWidget)
-        self.comboBoxAnalyse.addItem("")
-        self.comboBoxAnalyse.addItem("")
-        self.comboBoxAnalyse.addItem("")
-        self.comboBoxAnalyse.addItem("")
-        self.comboBoxAnalyse.addItem("")
-        self.comboBoxAnalyse.addItem("")
-        self.comboBoxAnalyse.setObjectName(u"comboBoxAnalyse")
-
-        self.horizontalLayout.addWidget(self.comboBoxAnalyse)
-
-        self.pushButtonAnalyse = QPushButton(RetrievePortalDataWidget)
-        self.pushButtonAnalyse.setObjectName(u"pushButtonAnalyse")
-
-        self.horizontalLayout.addWidget(self.pushButtonAnalyse)
-
-        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        self.horizontalLayout.addItem(self.horizontalSpacer_3)
-
 
         self.verticalLayout.addLayout(self.horizontalLayout)
 
@@ -145,15 +116,6 @@ class Ui_RetrievePortalDataWidget(object):
         self.labelDatasetID.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Dataset ID:  ", None))
         self.pushButtonSearch.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Search", None))
         self.pushButtonDownload.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Download", None))
-        self.pushButtonExportVTK.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Export VTK", None))
-        self.comboBoxAnalyse.setItemText(0, QCoreApplication.translate("RetrievePortalDataWidget", u"heart", None))
-        self.comboBoxAnalyse.setItemText(1, QCoreApplication.translate("RetrievePortalDataWidget", u"lung", None))
-        self.comboBoxAnalyse.setItemText(2, QCoreApplication.translate("RetrievePortalDataWidget", u"stomach", None))
-        self.comboBoxAnalyse.setItemText(3, QCoreApplication.translate("RetrievePortalDataWidget", u"kidney", None))
-        self.comboBoxAnalyse.setItemText(4, QCoreApplication.translate("RetrievePortalDataWidget", u"colon", None))
-        self.comboBoxAnalyse.setItemText(5, QCoreApplication.translate("RetrievePortalDataWidget", u"skin", None))
-
-        self.pushButtonAnalyse.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Analyse", None))
         self.pushButtonDone.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Done", None))
     # retranslateUi
 

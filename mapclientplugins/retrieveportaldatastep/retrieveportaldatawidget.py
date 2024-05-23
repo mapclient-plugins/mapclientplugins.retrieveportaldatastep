@@ -1,5 +1,6 @@
 import json
 import os
+import hashlib
 
 from PySide6 import QtCore, QtGui, QtWidgets
 
@@ -33,8 +34,6 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
     def _make_connections(self):
         self._ui.pushButtonSearch.clicked.connect(self._search_button_clicked)
         self._ui.pushButtonDownload.clicked.connect(self._download_button_clicked)
-        self._ui.pushButtonExportVTK.clicked.connect(self._export_vtk_button_clicked)
-        self._ui.pushButtonAnalyse.clicked.connect(self._analyse_button_clicked)
         self._ui.pushButtonDone.clicked.connect(self._done_button_clicked)
 
         fileBrowserModel = QtWidgets.QFileSystemModel()
@@ -44,21 +43,22 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
 
     def _update_ui(self):
         ready = len(self._selection_model.selectedRows()) > 0 if self._selection_model else False
-        self._ui.pushButtonAnalyse.setEnabled(ready)
         self._ui.pushButtonDownload.setEnabled(ready)
-        self._ui.pushButtonExportVTK.setEnabled(ready)
-        self._ui.comboBoxAnalyse.setEnabled(ready)
 
     def _set_table(self, file_list):
-        self._model = QtGui.QStandardItemModel(0, 3)
-        self._model.setHorizontalHeaderLabels(['Filename', 'Dataset ID', 'Dataset Version'])
+        self._model = QtGui.QStandardItemModel(0, 4)
+        self._model.setHorizontalHeaderLabels(['Filename', 'Dataset ID', 'Dataset Version', 'Updates'])
         for row in range(len(file_list)):
+            print(file_list[row])
             item = QtGui.QStandardItem("%s" % (file_list[row]["name"]))
             self._model.setItem(row, 0, item)
             item = QtGui.QStandardItem("%s" % (file_list[row]["datasetId"]))
             self._model.setItem(row, 1, item)
             item = QtGui.QStandardItem("%s" % (file_list[row]["datasetVersion"]))
             self._model.setItem(row, 2, item)
+            if self._file_has_updates(file_list[row]["name"]):
+                item = QtGui.QStandardItem("Updates available.")
+                self._model.setItem(row, 3, item)
 
         self._ui.tableViewSearchResult.setModel(self._model)
         self._ui.tableViewSearchResult.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
@@ -82,32 +82,49 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
     def _search_button_clicked(self):
         self._retrieve_data()
 
+    def _file_exists(self, filename):
+        return filename in [f for f in os.listdir(self._output_dir) if os.path.isfile(os.path.join(self._output_dir, f))]
+
+    def _file_has_updates(self, filename):
+        return filename in [f for f in os.listdir(self._output_dir) if os.path.isfile(os.path.join(self._output_dir, f))]
+
+    def _check_same_file(self, file1, file2):
+        digests = []
+        hasher = hashlib.md5()
+        with open(file1, 'rb') as f:
+            buf = f.read()
+            hasher.update(buf)
+            a = hasher.hexdigest()
+            digests.append(a)
+            print(a)
+        with open(file2, 'rb') as f:
+            buf = f.read()
+            hasher.update(buf)
+            a = hasher.hexdigest()
+            digests.append(a)
+            print(a)
+
+        print(digests[0] == digests[1])
+        return digests[0] == digests[1]
+
     def _download_button_clicked(self):
         indexes = self._ui.tableViewSearchResult.selectionModel().selectedRows()
         for index in indexes:
-            output_name = os.path.join(self._output_dir, self._list_files[index.row()]['name'])
-            self._pennsieve_service.download_file(self._list_files[index.row()], output_name)
+            if self._file_exists(self._list_files[index.row()]['name']):
+                dlg = QtWidgets.QMessageBox(self)
+                dlg.setWindowTitle("File exists")
+                dlg.setText("The file will be replaced?")
+                dlg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+                ret = dlg.exec()
+                if ret == QtWidgets.QMessageBox.Yes:
+                    output_name = os.path.join(self._output_dir, self._list_files[index.row()]['name'])
+                    self._pennsieve_service.download_file(self._list_files[index.row()], output_name)
 
     def _export_vtk_button_clicked(self):
         indexes = self._ui.tableViewSearchResult.selectionModel().selectedRows()
         for index in indexes:
             output_name = os.path.join(self._output_dir, self._list_files[index.row()]['name'])
             self._zinc.get_mbf_vtk(self._list_files[index.row()]['datasetId'], output_name)
-
-    def _analyse_button_clicked(self):
-        indexes = self._ui.tableViewSearchResult.selectionModel().selectedRows()
-        for index in indexes:
-            self._pennsieve_service.download_file(self._list_files[index.row()])
-            try:
-                organ = self._ui.comboBoxAnalyse.currentText()
-                result = self._zinc.analyse(self._list_files[index.row()]['name'], organ)
-            except ValueError:
-                result = "Input file must be an MBF XML file"
-                
-            dlg = QtWidgets.QMessageBox(self)
-            dlg.setWindowTitle("Analyse result")
-            dlg.setText(result)
-            dlg.exec_()
 
     def search_scaffolds(self):
         query = '''
