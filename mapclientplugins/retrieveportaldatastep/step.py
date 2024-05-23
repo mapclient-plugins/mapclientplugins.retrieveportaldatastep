@@ -30,18 +30,24 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         self._portData0 = None  # http://physiomeproject.org/workflow/1.0/rdf-schema#directory_location
         # Config:
         self._config = {
-            'identifier': '', 'outputDir': ''
+            'identifier': '', 'output-directories': [], 'output-directory-index': 0
         }
+
+    def _setup_configure_dialog(self, parent=None):
+        d = ConfigureDialog(parent)
+        d.setWorkflowLocation(self._location)
+        d.identifierOccursCount = self._identifierOccursCount
+        d.setConfig(self._config)
+        return d
+
+    def _determine_ouptut_dir(self):
+        d = self._setup_configure_dialog()
+        return d.get_output_directory()
 
     def execute(self):
         QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.CursorShape.WaitCursor)
         try:
-            output_dir = self._config['outputDir'] if os.path.isabs(self._config['outputDir']) else os.path.join(
-                self._location, self._config['outputDir'])
-            output_dir = os.path.realpath(output_dir)
-            if not os.path.isdir(output_dir):
-                os.mkdir(output_dir)
-
+            output_dir = self._determine_ouptut_dir()
             self._view = RetrievePortalDataWidget(output_dir)
             self._view.register_done_execution(self._doneExecution)
             self._setCurrentWidget(self._view)
@@ -52,10 +58,7 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         return self._view.get_output_files()
 
     def configure(self):
-        dlg = ConfigureDialog(self._main_window)
-        dlg.setWorkflowLocation(self._location)
-        dlg.identifierOccursCount = self._identifierOccursCount
-        dlg.setConfig(self._config)
+        dlg = self._setup_configure_dialog(self._main_window)
         dlg.validate()
         dlg.setModal(True)
 
@@ -93,10 +96,7 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         """
         self._config.update(json.loads(string))
 
-        d = ConfigureDialog()
-        d.setWorkflowLocation(self._location)
-        d.identifierOccursCount = self._identifierOccursCount
-        d.setConfig(self._config)
+        d = self._setup_configure_dialog()
         self._configured = d.validate()
 
 

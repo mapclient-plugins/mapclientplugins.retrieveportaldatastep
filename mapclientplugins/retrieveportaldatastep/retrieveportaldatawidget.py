@@ -10,6 +10,32 @@ from sparc.client.services.pennsieve import PennsieveService
 from sparc.client.services.metadata import MetadataService
 from sparc.client.zinchelper import ZincHelper
 
+SPECIES = [
+    "Cat",
+    "Dog",
+    "Ferret",
+    "Human",
+    "Mouse",
+    "Pig",
+    "Rabbit",
+    "Rat",
+    "Sheep",
+]
+ORGANS = [
+    "Stomach",
+    "Heart",
+    "Lung",
+]
+
+
+def _create_filter_menu(parent, labels):
+    filter_menu = QtWidgets.QMenu(parent)
+    for label in labels:
+        action = filter_menu.addAction(label)
+        action.setCheckable(True)
+
+    return filter_menu
+
 
 class RetrievePortalDataWidget(QtWidgets.QWidget):
 
@@ -23,6 +49,8 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._output_dir = output_dir
         self._ui = Ui_RetrievePortalDataWidget()
         self._ui.setupUi(self)
+        self._ui.toolButtonFilterSpecies.setMenu(_create_filter_menu(self._ui.toolButtonFilterSpecies, SPECIES))
+        self._ui.toolButtonFilterOrgan.setMenu(_create_filter_menu(self._ui.toolButtonFilterOrgan, ORGANS))
 
         self._pennsieve_service = PennsieveService(connect=False)
         self._scicrunch_service = MetadataService(connect=False)
