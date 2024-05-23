@@ -132,5 +132,5 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
     def _done_button_clicked(self):
         self._callback()
 
-    def registerDoneExecution(self, callback):
+    def register_done_execution(self, callback):
         self._callback = callback
