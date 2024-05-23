@@ -81,12 +81,12 @@ class Ui_RetrievePortalDataWidget(object):
 
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.comboBox = QComboBox(self.manifestGroupBox)
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.setObjectName(u"comboBox")
+        self.comboBoxSearchType = QComboBox(self.manifestGroupBox)
+        self.comboBoxSearchType.addItem("")
+        self.comboBoxSearchType.addItem("")
+        self.comboBoxSearchType.setObjectName(u"comboBoxSearchType")
 
-        self.horizontalLayout_3.addWidget(self.comboBox)
+        self.horizontalLayout_3.addWidget(self.comboBoxSearchType)
 
         self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -102,14 +102,20 @@ class Ui_RetrievePortalDataWidget(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.groupBoxFilter.sizePolicy().hasHeightForWidth())
         self.groupBoxFilter.setSizePolicy(sizePolicy1)
+        self.gridLayout = QGridLayout(self.groupBoxFilter)
+        self.gridLayout.setObjectName(u"gridLayout")
         self.toolButtonFilterSpecies = QToolButton(self.groupBoxFilter)
         self.toolButtonFilterSpecies.setObjectName(u"toolButtonFilterSpecies")
-        self.toolButtonFilterSpecies.setGeometry(QRect(114, 50, 49, 22))
         self.toolButtonFilterSpecies.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+
+        self.gridLayout.addWidget(self.toolButtonFilterSpecies, 0, 0, 1, 1)
+
         self.toolButtonFilterOrgan = QToolButton(self.groupBoxFilter)
         self.toolButtonFilterOrgan.setObjectName(u"toolButtonFilterOrgan")
-        self.toolButtonFilterOrgan.setGeometry(QRect(114, 97, 46, 22))
         self.toolButtonFilterOrgan.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+
+        self.gridLayout.addWidget(self.toolButtonFilterOrgan, 1, 0, 1, 1)
+
 
         self.gridLayout_2.addWidget(self.groupBoxFilter, 0, 2, 4, 1)
 
@@ -193,12 +199,12 @@ class Ui_RetrievePortalDataWidget(object):
         self.lineEditDatasetID.setToolTip(QCoreApplication.translate("RetrievePortalDataWidget", u"Restrict the search to the dataset with ID specified here", None))
 #endif // QT_CONFIG(tooltip)
         self.pushButtonSearch.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Search", None))
-        self.comboBox.setItemText(0, QCoreApplication.translate("RetrievePortalDataWidget", u"by filename", None))
-        self.comboBox.setItemText(1, QCoreApplication.translate("RetrievePortalDataWidget", u"by mimetype", None))
+        self.comboBoxSearchType.setItemText(0, QCoreApplication.translate("RetrievePortalDataWidget", u"by filename", None))
+        self.comboBoxSearchType.setItemText(1, QCoreApplication.translate("RetrievePortalDataWidget", u"by mimetype", None))
 
         self.groupBoxFilter.setTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Filter:", None))
-        self.toolButtonFilterSpecies.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Species", None))
-        self.toolButtonFilterOrgan.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Organ", None))
+        self.toolButtonFilterSpecies.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Species  ", None))
+        self.toolButtonFilterOrgan.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Organ  ", None))
         self.groupBox.setTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Search results:", None))
         self.pushButtonDownload.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Download", None))
         self.groupBoxDownloadedFileTree.setTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Downloaded files:", None))
