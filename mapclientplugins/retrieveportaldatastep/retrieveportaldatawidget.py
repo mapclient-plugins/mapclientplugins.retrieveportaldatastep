@@ -285,11 +285,29 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
 
     def _transfer_in_clicked(self):
         indexes = self._ui.treeViewFileBrowser.selectionModel().selectedRows()
-        pass
+        model = self._ui.treeViewFileBrowser.model()
+        list_model = self._ui.listViewProvidedFiles.model()
+        current_strings = list_model.stringList()
+        set_of_current_strings = set(current_strings)
+        for index in indexes:
+            relative_path = os.path.relpath(model.filePath(index), self._output_dir)
+            set_of_current_strings.add(relative_path)
+
+        list_model.setStringList(list(set_of_current_strings))
 
     def _transfer_out_clicked(self):
         indexes = self._ui.listViewProvidedFiles.selectionModel().selectedRows()
-        pass
+        list_model = self._ui.listViewProvidedFiles.model()
+        current_strings = list_model.stringList()
+        rows_to_delete = []
+        for index in indexes:
+            rows_to_delete.append(index.row())
+
+        for row in reversed(sorted(rows_to_delete)):
+            del current_strings[row]
+
+        list_model.setStringList(current_strings)
+        self._update_ui()
 
     def _retrieve_data(self):
         # Get user’s input
@@ -458,7 +476,9 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
             self._zinc.get_mbf_vtk(self._list_files[index.row()]['datasetId'], output_name)
 
     def get_output_files(self):
-        return [os.path.join(self._output_dir, f) for f in os.listdir(self._output_dir) if os.path.isfile(os.path.join(self._output_dir, f))]
+        list_model = self._ui.listViewProvidedFiles.model()
+        current_strings = list_model.stringList()
+        return [os.path.join(self._output_dir, f) for f in current_strings]
 
     def _done_button_clicked(self):
         self._callback()
