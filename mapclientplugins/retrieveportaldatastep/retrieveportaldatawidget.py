@@ -119,7 +119,7 @@ def _create_search_result(obj, result):
     }
 
 
-def _scicrunch_search(search_text, search_type, facets=None):
+def _return_scicruncth_search_result(search_text, search_type, facets):
     result_size = 100
     target_field_parts = []
     req = {}
@@ -143,7 +143,11 @@ def _scicrunch_search(search_text, search_type, facets=None):
         print("Something has gone wrong!", search_type, "is not a handled search type.")
 
     response = _do_scicrunch_request(req)
-    post_result = response.json()
+    return response.json(), result_size, target_field_parts
+
+
+def _scicrunch_search(search_text, search_type, facets=None):
+    post_result, result_size, target_field_parts = _return_scicruncth_search_result(search_text, search_type, facets)
     search_result = []
     if "hits" in post_result and post_result["hits"]["total"] > 0:
         for hit_index in range(min(result_size, post_result["hits"]["total"])):
