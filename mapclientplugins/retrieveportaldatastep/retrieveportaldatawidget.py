@@ -210,6 +210,14 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._dataset_id_completer.setCaseSensitivity(QtCore.Qt.CaseSensitivity.CaseInsensitive)
         self._dataset_id_completer.setFilterMode(QtCore.Qt.MatchFlag.MatchContains)
 
+        fileBrowserModel = QtWidgets.QFileSystemModel()
+        fileBrowserModel.setRootPath(QtCore.QDir.rootPath())
+        self._ui.treeViewFileBrowser.setModel(fileBrowserModel)
+        self._ui.treeViewFileBrowser.setRootIndex(fileBrowserModel.index(self._output_dir))
+
+        listModel = QtCore.QStringListModel()
+        self._ui.listViewProvidedFiles.setModel(listModel)
+
         self._make_connections()
         self._update_ui()
 
@@ -225,14 +233,18 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._ui.treeViewFileBrowser.expanded.connect(self._file_browser_expanded)
         self._completer.activated.connect(self._handle_completion)
         self._dataset_id_completer.activated.connect(self._handle_dataset_id_completion)
+        self._ui.pushButtonTransferIn.clicked.connect(self._transfer_in_clicked)
+        self._ui.pushButtonTransferOut.clicked.connect(self._transfer_out_clicked)
 
-        fileBrowserModel = QtWidgets.QFileSystemModel()
-        fileBrowserModel.setRootPath(QtCore.QDir.rootPath())
-        self._ui.treeViewFileBrowser.setModel(fileBrowserModel)
-        self._ui.treeViewFileBrowser.setRootIndex(fileBrowserModel.index(self._output_dir))
+        self._file_selection_model = self._ui.treeViewFileBrowser.selectionModel()
+        self._file_selection_model.selectionChanged.connect(self._update_ui)
+        self._provide_selection_model = self._ui.listViewProvidedFiles.selectionModel()
+        self._provide_selection_model.selectionChanged.connect(self._update_ui)
 
     def _update_ui(self):
         ready = len(self._selection_model.selectedRows()) > 0 if self._selection_model else False
+        transfer_in = len(self._file_selection_model.selectedRows()) > 0 if self._file_selection_model else False
+        transfer_out = len(self._provide_selection_model.selectedRows()) > 0 if self._provide_selection_model else False
         search_text = len(self._ui.lineEditSearch.text()) > 0
         file_search = self._ui.comboBoxSearchBy.currentIndex() == 1
         mimetype_search = self._ui.comboBoxSearchBy.currentIndex() == 2
@@ -240,6 +252,8 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._ui.groupBoxFilter.setEnabled(mimetype_search)
         self._ui.groupBoxRestrictTo.setEnabled(file_search)
         self._ui.pushButtonDownload.setEnabled(ready)
+        self._ui.pushButtonTransferIn.setEnabled(transfer_in)
+        self._ui.pushButtonTransferOut.setEnabled(transfer_out)
         self._ui.pushButtonSearch.setEnabled(search_text)
 
     def _file_browser_expanded(self, index):
@@ -268,6 +282,14 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._ui.tableViewSearchResult.horizontalHeader().setStretchLastSection(True)
         self._selection_model = self._ui.tableViewSearchResult.selectionModel()
         self._selection_model.selectionChanged.connect(self._update_ui)
+
+    def _transfer_in_clicked(self):
+        indexes = self._ui.treeViewFileBrowser.selectionModel().selectedRows()
+        pass
+
+    def _transfer_out_clicked(self):
+        indexes = self._ui.listViewProvidedFiles.selectionModel().selectedRows()
+        pass
 
     def _retrieve_data(self):
         # Get user’s input

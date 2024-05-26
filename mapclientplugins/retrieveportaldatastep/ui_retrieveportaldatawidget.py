@@ -15,19 +15,19 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QComboBox, QGridLayout,
-    QGroupBox, QHBoxLayout, QHeaderView, QLabel,
-    QLineEdit, QPushButton, QSizePolicy, QSpacerItem,
-    QTableView, QToolButton, QTreeView, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QComboBox, QFrame,
+    QGridLayout, QGroupBox, QHBoxLayout, QHeaderView,
+    QLabel, QLineEdit, QListView, QPushButton,
+    QSizePolicy, QSpacerItem, QTableView, QToolButton,
+    QTreeView, QVBoxLayout, QWidget)
 
 class Ui_RetrievePortalDataWidget(object):
     def setupUi(self, RetrievePortalDataWidget):
         if not RetrievePortalDataWidget.objectName():
             RetrievePortalDataWidget.setObjectName(u"RetrievePortalDataWidget")
         RetrievePortalDataWidget.resize(714, 584)
-        self.verticalLayout_5 = QVBoxLayout(RetrievePortalDataWidget)
-        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.verticalLayout_9 = QVBoxLayout(RetrievePortalDataWidget)
+        self.verticalLayout_9.setObjectName(u"verticalLayout_9")
         self.manifestGroupBox = QGroupBox(RetrievePortalDataWidget)
         self.manifestGroupBox.setObjectName(u"manifestGroupBox")
         self.gridLayout = QGridLayout(self.manifestGroupBox)
@@ -145,7 +145,7 @@ class Ui_RetrievePortalDataWidget(object):
         self.gridLayout.addWidget(self.groupBoxRestrictTo, 0, 2, 3, 1)
 
 
-        self.verticalLayout_5.addWidget(self.manifestGroupBox)
+        self.verticalLayout_9.addWidget(self.manifestGroupBox)
 
         self.groupBox = QGroupBox(RetrievePortalDataWidget)
         self.groupBox.setObjectName(u"groupBox")
@@ -161,15 +161,28 @@ class Ui_RetrievePortalDataWidget(object):
         self.verticalLayout_2.addWidget(self.tableViewSearchResult)
 
 
-        self.verticalLayout_5.addWidget(self.groupBox)
+        self.verticalLayout_9.addWidget(self.groupBox)
 
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.frameDownload = QFrame(RetrievePortalDataWidget)
+        self.frameDownload.setObjectName(u"frameDownload")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        sizePolicy2.setHorizontalStretch(5)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.frameDownload.sizePolicy().hasHeightForWidth())
+        self.frameDownload.setSizePolicy(sizePolicy2)
+        self.frameDownload.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frameDownload.setFrameShadow(QFrame.Shadow.Raised)
+        self.verticalLayout_6 = QVBoxLayout(self.frameDownload)
+        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.horizontalSpacer_5 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         self.horizontalLayout.addItem(self.horizontalSpacer_5)
 
-        self.pushButtonDownload = QPushButton(RetrievePortalDataWidget)
+        self.pushButtonDownload = QPushButton(self.frameDownload)
         self.pushButtonDownload.setObjectName(u"pushButtonDownload")
 
         self.horizontalLayout.addWidget(self.pushButtonDownload)
@@ -179,19 +192,85 @@ class Ui_RetrievePortalDataWidget(object):
         self.horizontalLayout.addItem(self.horizontalSpacer)
 
 
-        self.verticalLayout_5.addLayout(self.horizontalLayout)
+        self.verticalLayout_6.addLayout(self.horizontalLayout)
 
-        self.groupBoxDownloadedFileTree = QGroupBox(RetrievePortalDataWidget)
+        self.groupBoxDownloadedFileTree = QGroupBox(self.frameDownload)
         self.groupBoxDownloadedFileTree.setObjectName(u"groupBoxDownloadedFileTree")
         self.verticalLayout = QVBoxLayout(self.groupBoxDownloadedFileTree)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.treeViewFileBrowser = QTreeView(self.groupBoxDownloadedFileTree)
         self.treeViewFileBrowser.setObjectName(u"treeViewFileBrowser")
+        self.treeViewFileBrowser.header().setCascadingSectionResizes(True)
 
         self.verticalLayout.addWidget(self.treeViewFileBrowser)
 
 
-        self.verticalLayout_5.addWidget(self.groupBoxDownloadedFileTree)
+        self.verticalLayout_6.addWidget(self.groupBoxDownloadedFileTree)
+
+
+        self.horizontalLayout_5.addWidget(self.frameDownload)
+
+        self.frameTransfer = QFrame(RetrievePortalDataWidget)
+        self.frameTransfer.setObjectName(u"frameTransfer")
+        sizePolicy1.setHeightForWidth(self.frameTransfer.sizePolicy().hasHeightForWidth())
+        self.frameTransfer.setSizePolicy(sizePolicy1)
+        self.frameTransfer.setFrameShape(QFrame.Shape.NoFrame)
+        self.frameTransfer.setFrameShadow(QFrame.Shadow.Plain)
+        self.verticalLayout_8 = QVBoxLayout(self.frameTransfer)
+        self.verticalLayout_8.setObjectName(u"verticalLayout_8")
+        self.verticalSpacer_5 = QSpacerItem(20, 37, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.verticalLayout_8.addItem(self.verticalSpacer_5)
+
+        self.pushButtonTransferIn = QPushButton(self.frameTransfer)
+        self.pushButtonTransferIn.setObjectName(u"pushButtonTransferIn")
+
+        self.verticalLayout_8.addWidget(self.pushButtonTransferIn)
+
+        self.verticalSpacer_3 = QSpacerItem(20, 7, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.verticalLayout_8.addItem(self.verticalSpacer_3)
+
+        self.pushButtonTransferOut = QPushButton(self.frameTransfer)
+        self.pushButtonTransferOut.setObjectName(u"pushButtonTransferOut")
+
+        self.verticalLayout_8.addWidget(self.pushButtonTransferOut)
+
+        self.verticalSpacer_4 = QSpacerItem(20, 37, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.verticalLayout_8.addItem(self.verticalSpacer_4)
+
+
+        self.horizontalLayout_5.addWidget(self.frameTransfer)
+
+        self.frameProvide = QFrame(RetrievePortalDataWidget)
+        self.frameProvide.setObjectName(u"frameProvide")
+        sizePolicy3 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        sizePolicy3.setHorizontalStretch(4)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.frameProvide.sizePolicy().hasHeightForWidth())
+        self.frameProvide.setSizePolicy(sizePolicy3)
+        self.frameProvide.setFrameShape(QFrame.Shape.StyledPanel)
+        self.frameProvide.setFrameShadow(QFrame.Shadow.Raised)
+        self.verticalLayout_7 = QVBoxLayout(self.frameProvide)
+        self.verticalLayout_7.setObjectName(u"verticalLayout_7")
+        self.groupBoxProvudedFiles = QGroupBox(self.frameProvide)
+        self.groupBoxProvudedFiles.setObjectName(u"groupBoxProvudedFiles")
+        self.verticalLayout_5 = QVBoxLayout(self.groupBoxProvudedFiles)
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.listViewProvidedFiles = QListView(self.groupBoxProvudedFiles)
+        self.listViewProvidedFiles.setObjectName(u"listViewProvidedFiles")
+
+        self.verticalLayout_5.addWidget(self.listViewProvidedFiles)
+
+
+        self.verticalLayout_7.addWidget(self.groupBoxProvudedFiles)
+
+
+        self.horizontalLayout_5.addWidget(self.frameProvide)
+
+
+        self.verticalLayout_9.addLayout(self.horizontalLayout_5)
 
         self.horizontalLayout1 = QHBoxLayout()
         self.horizontalLayout1.setObjectName(u"horizontalLayout1")
@@ -205,7 +284,7 @@ class Ui_RetrievePortalDataWidget(object):
         self.horizontalLayout1.addWidget(self.pushButtonDone)
 
 
-        self.verticalLayout_5.addLayout(self.horizontalLayout1)
+        self.verticalLayout_9.addLayout(self.horizontalLayout1)
 
 
         self.retranslateUi(RetrievePortalDataWidget)
@@ -236,6 +315,15 @@ class Ui_RetrievePortalDataWidget(object):
         self.groupBox.setTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Search results:", None))
         self.pushButtonDownload.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Download", None))
         self.groupBoxDownloadedFileTree.setTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Downloaded files:", None))
+#if QT_CONFIG(tooltip)
+        self.pushButtonTransferIn.setToolTip(QCoreApplication.translate("RetrievePortalDataWidget", u"Add selected file to list of provided files", None))
+#endif // QT_CONFIG(tooltip)
+        self.pushButtonTransferIn.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"-->", None))
+#if QT_CONFIG(tooltip)
+        self.pushButtonTransferOut.setToolTip(QCoreApplication.translate("RetrievePortalDataWidget", u"Remove selected file to list of provided files", None))
+#endif // QT_CONFIG(tooltip)
+        self.pushButtonTransferOut.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"<--", None))
+        self.groupBoxProvudedFiles.setTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Provided files:", None))
         self.pushButtonDone.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Done", None))
     # retranslateUi
 
