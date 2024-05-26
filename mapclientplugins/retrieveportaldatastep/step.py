@@ -4,6 +4,7 @@ MAP Client Plugin Step
 """
 import json
 import os
+import pathlib
 
 from PySide6 import QtGui, QtWidgets, QtCore
 
@@ -30,7 +31,7 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         self._portData0 = None  # http://physiomeproject.org/workflow/1.0/rdf-schema#directory_location
         # Config:
         self._config = {
-            'identifier': '', 'output-directories': [], 'output-directory-index': 0, 'output-files': []
+            'identifier': '', 'output-directories': [], 'output-directory-index': 0,
         }
 
     def _setup_configure_dialog(self, parent=None):
@@ -44,27 +45,46 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         d = self._setup_configure_dialog()
         return d.get_output_directory()
 
-    def _determine_output_files(self):
-        d = self._setup_configure_dialog()
-        return d.get_output_files()
+    def _settings_filename(self):
+        return os.path.join(self._location, f"{self._config['identifier']}-settings.json")
+
+    def _get_output_files(self):
+        if not os.path.isfile(self._settings_filename()):
+            with open(self._settings_filename(), "w") as fh:
+                json.dump({}, fh)
+
+        with open(self._settings_filename()) as fh:
+            settings = json.load(fh)
+
+        return [f for f in settings.get("output-files", []) if os.path.isfile(os.path.join(self._determine_output_dir(), f))]
+
+    def _set_output_files(self, output_files):
+        with open(self._settings_filename()) as fh:
+            settings = json.load(fh)
+
+        settings['output-files'] = [pathlib.PureWindowsPath(f).as_posix() for f in output_files]
+
+        with open(self._settings_filename(), "w") as fh:
+            json.dump(settings, fh)
 
     def execute(self):
         QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.CursorShape.WaitCursor)
         try:
             output_dir = self._determine_output_dir()
-            output_files = self._determine_output_files()
-            print(self._config)
-            print(output_files)
+            output_files = self._get_output_files()
             self._view = RetrievePortalDataWidget(output_dir, output_files)
-            self._view.register_done_execution(self._doneExecution)
+            self._view.register_done_execution(self._done_execution)
             self._setCurrentWidget(self._view)
         finally:
             QtWidgets.QApplication.restoreOverrideCursor()
 
+    def _done_execution(self):
+        output_files = self._view.get_output_files()
+        self._set_output_files(output_files)
+        self._doneExecution()
+
     def getPortData(self, index):
         output_files = self._view.get_output_files()
-        self._config['output-files'] = output_files
-        print(output_files)
         output_dir = self._determine_output_dir()
         return [os.path.join(output_dir, f) for f in output_files]
 
@@ -110,4 +130,5 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         d = self._setup_configure_dialog()
         self._configured = d.validate()
 
-
+    def getAdditionalConfigFiles(self):
+        return [self._settings_filename()]

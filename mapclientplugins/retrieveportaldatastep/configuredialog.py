@@ -36,8 +36,6 @@ class ConfigureDialog(QtWidgets.QDialog):
         self._workflow_location = None
         self._previous_location = ''
 
-        self._file_list = []
-
         self._make_connections()
 
     def setWorkflowLocation(self, location):
@@ -102,7 +100,7 @@ class ConfigureDialog(QtWidgets.QDialog):
         else:
             self._ui.lineEdit0.setStyleSheet(INVALID_STYLE_SHEET)
 
-        return valid and self._directory_valid() and self._files_valid()
+        return valid and self._directory_valid()
 
     def _output_location_abspath(self):
         dir_path = self._output_location()
@@ -125,14 +123,6 @@ class ConfigureDialog(QtWidgets.QDialog):
 
         return directory_valid
 
-    def _files_valid(self):
-        dir_path = self._output_location_abspath()
-        for f in self._file_list:
-            if not os.path.isfile(os.path.join(dir_path, f)):
-                return False
-
-        return True
-
     def getConfig(self):
         """
         Get the current value of the configuration from the dialog.  Also
@@ -147,7 +137,6 @@ class ConfigureDialog(QtWidgets.QDialog):
             'identifier': self._ui.lineEdit0.text(),
             'output-directory-index': self._ui.comboBoxOutputDirectory.currentIndex(),
             'output-directories': output_directories,
-            'output-files': [pathlib.PureWindowsPath(f).as_posix() for f in self._file_list]
         }
         if self._previous_location:
             config['previous-location'] = os.path.relpath(self._previous_location, self._workflow_location)
@@ -162,9 +151,6 @@ class ConfigureDialog(QtWidgets.QDialog):
     def get_output_directory(self):
         return self._output_location_abspath()
 
-    def get_output_files(self):
-        return self._file_list
-
     def setConfig(self, config):
         """
         Set the current value of the configuration for the dialog.  Also
@@ -177,8 +163,6 @@ class ConfigureDialog(QtWidgets.QDialog):
         self._ui.comboBoxOutputDirectory.addItem(_global_output_directory())
         for output_directory in config.get('output-directories', []):
             self._ui.comboBoxOutputDirectory.addItem(output_directory)
-
-        self._file_list = config.get('output-files', [])
 
         self._ui.comboBoxOutputDirectory.setCurrentIndex(config.get('output-directory-index', 0))
 
