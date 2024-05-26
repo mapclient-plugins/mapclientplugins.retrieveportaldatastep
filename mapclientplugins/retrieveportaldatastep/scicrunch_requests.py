@@ -110,6 +110,3 @@ def form_scicrunch_match_request(match_field, match_value, source_fields):
         },
         "_source": source_fields
     }
-
-# {'size': 20, 'from': 0, 'query': {'query_string': {'query': '*x.vnd.abi.scaffold*', 'fields': ['objects.additional_mimetype.name']}}}
-# {'size': 20, 'from': 0, 'query': {'query_string': {'query': '*x.vnd.abi.scaffold*', 'fields': ['objects.additional_mimetype.name']}}}

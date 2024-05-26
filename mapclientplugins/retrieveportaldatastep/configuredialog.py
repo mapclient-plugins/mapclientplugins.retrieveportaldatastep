@@ -1,5 +1,4 @@
 import os
-import pathlib
 
 from PySide6 import QtWidgets
 from mapclientplugins.retrieveportaldatastep.ui_configuredialog import Ui_ConfigureDialog
