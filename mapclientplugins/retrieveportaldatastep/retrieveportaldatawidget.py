@@ -222,6 +222,7 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._ui.pushButtonDone.clicked.connect(self._done_button_clicked)
         self._ui.comboBoxSearchBy.currentTextChanged.connect(self._search_by_changed)
         self._ui.lineEditSearch.textChanged.connect(self._search_text_changed)
+        self._ui.treeViewFileBrowser.expanded.connect(self._file_browser_expanded)
         self._completer.activated.connect(self._handle_completion)
         self._dataset_id_completer.activated.connect(self._handle_dataset_id_completion)
 
@@ -240,6 +241,10 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._ui.groupBoxRestrictTo.setEnabled(file_search)
         self._ui.pushButtonDownload.setEnabled(ready)
         self._ui.pushButtonSearch.setEnabled(search_text)
+
+    def _file_browser_expanded(self, index):
+        if index.isValid() and index.column() == 0:
+            self._ui.treeViewFileBrowser.resizeColumnToContents(0)
 
     def _set_table(self, file_list):
         self._model = QtGui.QStandardItemModel(0, 4)
