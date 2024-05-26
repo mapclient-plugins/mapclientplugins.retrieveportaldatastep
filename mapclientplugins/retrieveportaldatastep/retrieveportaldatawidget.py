@@ -7,7 +7,7 @@ import requests
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from mapclientplugins.retrieveportaldatastep.ui_retrieveportaldatawidget import Ui_RetrievePortalDataWidget
-from mapclientplugins.retrieveportaldatastep.definitions import DEFAULT_KEY, DEFAULT_HEADERS
+from mapclientplugins.retrieveportaldatastep.definitions import DEFAULT_VALUE, DEFAULT_HEADERS
 from mapclientplugins.retrieveportaldatastep.scicrunch_requests import create_filter_request, form_scicrunch_match_request
 
 from sparc.client.services.pennsieve import PennsieveService
@@ -33,6 +33,7 @@ ORGANS = [
     "Lung",
 ]
 SEARCH_BANK_FILENAME = "retrieveportaldata-search-bank.json"
+API_KEY_NAME = "SCICRUNCH_API_KEY"
 
 
 def _create_filter_menu(parent, labels):
@@ -93,7 +94,7 @@ def _extract_facets(tool_button):
 def _do_scicrunch_request(req):
     base_url = "https://scicrunch.org/api/1/elastic/SPARC_PortalDatasets_pr/_search"
     params = {
-        "api_key": os.environ.get("SCICRUNCH_API_KEY", DEFAULT_KEY),
+        "api_key": os.environ.get(API_KEY_NAME, DEFAULT_VALUE),
     }
     headers = DEFAULT_HEADERS
     return requests.post(base_url, json=req, params=params, headers=headers)
@@ -116,6 +117,7 @@ def _create_search_result(obj, result):
         "datasetVersion": result["_source"]["pennsieve"]["version"]["identifier"],
         "mimetype": obj["additional_mimetype"]["name"] if obj["additional_mimetype"]["name"] else obj["mimetype"]["name"],
         "datasetPath": obj["dataset"]["path"],
+        "uri": "",
     }
 
 
@@ -190,13 +192,11 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._ui.setupUi(self)
         self._ui.toolButtonFilterSpecies.setMenu(_create_filter_menu(self._ui.toolButtonFilterSpecies, SPECIES))
         self._ui.toolButtonFilterOrgan.setMenu(_create_filter_menu(self._ui.toolButtonFilterOrgan, ORGANS))
-        self._ui.comboBoxSearchBy.setAttribute(QtCore.Qt.WA_LayoutUsesWidgetRect)
 
         _initialise_search_bank()
 
         self._pennsieve_service = PennsieveService(connect=False)
         self._scicrunch_service = MetadataService()
-        self._scicrunch_service.set_profile(api_key=os.environ.get("SCICRUNCH_API_KEY", DEFAULT_KEY))
         self._zinc = ZincHelper()
 
         self._completer = QtWidgets.QCompleter()
@@ -384,41 +384,51 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         print(digests[0] == digests[1])
         return digests[0] == digests[1]
 
+    def _get_pennsieve_uri_suffix(self, dataset_id):
+        result = self._pennsieve_service.list_files(dataset_id=dataset_id, query='manifest', file_type='json')
+        return result[0]["uri"].replace("manifest.json", "")
+
     def _download_button_clicked(self):
         indexes = self._ui.tableViewSearchResult.selectionModel().selectedRows()
+
+        # Pre-search for missing Pennsieve URIs.
+        missing_uris = {}
         for index in indexes:
-            if self._file_exists(self._list_files[index.row()]['name']):
+            item = self._list_files[index.row()]
+            if not item["uri"] and item["datasetId"] not in missing_uris:
+                missing_uris[item["datasetId"]] = self._get_pennsieve_uri_suffix(item["datasetId"])
+
+        # Download files one at a time.
+        for index in indexes:
+            item = self._list_files[index.row()]
+            _fix_missing_uri(item, missing_uris)
+            local_destination = _form_local_destination(self._output_dir, item)
+
+            # Prepare missing directory structure for asset.
+            local_dir = os.path.dirname(local_destination)
+            if not os.path.isdir(local_dir):
+                os.makedirs(local_dir)
+
+            do_download = False
+            if self._file_exists(local_destination):
                 dlg = QtWidgets.QMessageBox(self)
-                dlg.setWindowTitle("File exists")
-                dlg.setText("The file will be replaced?")
+                dlg.setWindowTitle("File already exists!")
+                dlg.setText("Do you want to replace the existing file?")
                 dlg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
                 ret = dlg.exec()
                 if ret == QtWidgets.QMessageBox.StandardButton.Yes:
-                    output_name = os.path.join(self._output_dir, self._list_files[index.row()]['name'])
-                    self._pennsieve_service.download_file(self._list_files[index.row()], output_name)
+                    do_download = True
+            else:
+                do_download = True
+
+            if do_download:
+                self._pennsieve_service.download_file(item, local_destination)
 
     def _export_vtk_button_clicked(self):
         indexes = self._ui.tableViewSearchResult.selectionModel().selectedRows()
         for index in indexes:
             output_name = os.path.join(self._output_dir, self._list_files[index.row()]['name'])
             self._zinc.get_mbf_vtk(self._list_files[index.row()]['datasetId'], output_name)
-
-    def search_scaffolds(self):
-        query = '''
-        {
-            "size": 20,
-            "from": 0,
-            "query": {
-                "query_string": {
-                    "fields": [
-                        "objects.additional_mimetype.name"
-                    ],
-                    "query": "(*x.vnd.abi.scaffold*) AND (*meta)"
-                }
-            }
-        }
-        '''
-        result = self._scicrunch_service.search_portal_data(json.loads(query))
 
     def get_output_files(self):
         return [os.path.join(self._output_dir, f) for f in os.listdir(self._output_dir) if os.path.isfile(os.path.join(self._output_dir, f))]
@@ -428,3 +438,18 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
 
     def register_done_execution(self, callback):
         self._callback = callback
+
+
+def _fix_missing_uri(item, missing_uris):
+    if not item["uri"]:
+        uri_suffix = missing_uris[item["datasetId"]]
+        item["uri"] = f"{uri_suffix}files/{item['datasetPath']}"
+
+
+def _form_local_destination(base_dir, info):
+    parsed_object = urlparse(info["uri"])
+    near_relative_local_path = parsed_object.path.replace("files/", "")
+    index = near_relative_local_path.find("/")
+    relative_local_path = near_relative_local_path[index + 1:]
+
+    return os.path.join(base_dir, relative_local_path)
