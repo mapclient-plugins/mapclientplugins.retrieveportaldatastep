@@ -30,7 +30,7 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         self._portData0 = None  # http://physiomeproject.org/workflow/1.0/rdf-schema#directory_location
         # Config:
         self._config = {
-            'identifier': '', 'output-directories': [], 'output-directory-index': 0
+            'identifier': '', 'output-directories': [], 'output-directory-index': 0, 'output-files': []
         }
 
     def _setup_configure_dialog(self, parent=None):
@@ -40,22 +40,33 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         d.setConfig(self._config)
         return d
 
-    def _determine_ouptut_dir(self):
+    def _determine_output_dir(self):
         d = self._setup_configure_dialog()
         return d.get_output_directory()
+
+    def _determine_output_files(self):
+        d = self._setup_configure_dialog()
+        return d.get_output_files()
 
     def execute(self):
         QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.CursorShape.WaitCursor)
         try:
-            output_dir = self._determine_ouptut_dir()
-            self._view = RetrievePortalDataWidget(output_dir)
+            output_dir = self._determine_output_dir()
+            output_files = self._determine_output_files()
+            print(self._config)
+            print(output_files)
+            self._view = RetrievePortalDataWidget(output_dir, output_files)
             self._view.register_done_execution(self._doneExecution)
             self._setCurrentWidget(self._view)
         finally:
             QtWidgets.QApplication.restoreOverrideCursor()
 
     def getPortData(self, index):
-        return self._view.get_output_files()
+        output_files = self._view.get_output_files()
+        self._config['output-files'] = output_files
+        print(output_files)
+        output_dir = self._determine_output_dir()
+        return [os.path.join(output_dir, f) for f in output_files]
 
     def configure(self):
         dlg = self._setup_configure_dialog(self._main_window)

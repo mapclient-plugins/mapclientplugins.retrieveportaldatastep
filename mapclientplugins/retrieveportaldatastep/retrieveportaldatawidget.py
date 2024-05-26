@@ -180,7 +180,7 @@ def _determine_dataset_path(uri):
 
 class RetrievePortalDataWidget(QtWidgets.QWidget):
 
-    def __init__(self, output_dir, parent=None):
+    def __init__(self, output_dir, output_files, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
 
         self._model = None
@@ -215,7 +215,7 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._ui.treeViewFileBrowser.setModel(fileBrowserModel)
         self._ui.treeViewFileBrowser.setRootIndex(fileBrowserModel.index(self._output_dir))
 
-        listModel = QtCore.QStringListModel()
+        listModel = QtCore.QStringListModel(output_files)
         self._ui.listViewProvidedFiles.setModel(listModel)
 
         self._make_connections()
@@ -477,8 +477,7 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
 
     def get_output_files(self):
         list_model = self._ui.listViewProvidedFiles.model()
-        current_strings = list_model.stringList()
-        return [os.path.join(self._output_dir, f) for f in current_strings]
+        return list_model.stringList()
 
     def _done_button_clicked(self):
         self._callback()
