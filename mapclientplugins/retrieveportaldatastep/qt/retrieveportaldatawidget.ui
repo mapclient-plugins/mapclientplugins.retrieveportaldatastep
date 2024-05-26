@@ -13,10 +13,10 @@
   <property name="windowTitle">
    <string>Search tool</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3">
+  <layout class="QVBoxLayout" name="verticalLayout_5">
    <item>
     <widget class="QGroupBox" name="manifestGroupBox">
-     <layout class="QGridLayout" name="gridLayout_2">
+     <layout class="QGridLayout" name="gridLayout">
       <item row="0" column="0">
        <widget class="QLabel" name="labelSearchTerm">
         <property name="text">
@@ -37,38 +37,120 @@
         </property>
        </widget>
       </item>
+      <item row="0" column="3" rowspan="3">
+       <widget class="QGroupBox" name="groupBoxFilter">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="title">
+         <string>Filter:</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QToolButton" name="toolButtonFilterSpecies">
+           <property name="text">
+            <string>Species  </string>
+           </property>
+           <property name="popupMode">
+            <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="toolButtonFilterOrgan">
+           <property name="text">
+            <string>Organ  </string>
+           </property>
+           <property name="popupMode">
+            <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </item>
       <item row="1" column="0">
-       <widget class="QLabel" name="labelSearchType">
+       <widget class="QLabel" name="labelSearchBy">
         <property name="text">
-         <string>Search type:</string>
+         <string>Search by:</string>
         </property>
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="labelDatasetID">
-        <property name="toolTip">
-         <string>Restrict the search to the dataset with ID specified here</string>
-        </property>
-        <property name="text">
-         <string>Dataset ID:</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-        </property>
-       </widget>
+      <item row="1" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QComboBox" name="comboBoxSearchBy">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="frame">
+           <bool>true</bool>
+          </property>
+          <item>
+           <property name="text">
+            <string>DOI</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>filename</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>mimetype</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </item>
       <item row="2" column="1">
-       <widget class="QLineEdit" name="lineEditDatasetID">
-        <property name="toolTip">
-         <string>Restrict the search to the dataset with ID specified here</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
         <item>
          <widget class="QPushButton" name="pushButtonSearch">
           <property name="text">
@@ -91,68 +173,48 @@
         </item>
        </layout>
       </item>
-      <item row="1" column="1">
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <widget class="QComboBox" name="comboBoxSearchType">
-          <item>
-           <property name="text">
-            <string>by filename</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>by mimetype</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Orientation::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </item>
-      <item row="0" column="2" rowspan="4">
-       <widget class="QGroupBox" name="groupBoxFilter">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>1</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
+      <item row="0" column="2" rowspan="3">
+       <widget class="QGroupBox" name="groupBoxRestrictTo">
         <property name="title">
-         <string>Filter:</string>
+         <string>Restrict to:</string>
         </property>
-        <layout class="QGridLayout" name="gridLayout">
-         <item row="0" column="0">
-          <widget class="QToolButton" name="toolButtonFilterSpecies">
-           <property name="text">
-            <string>Species  </string>
-           </property>
-           <property name="popupMode">
-            <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
-           </property>
-          </widget>
+        <layout class="QVBoxLayout" name="verticalLayout_4">
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QLabel" name="labelDatasetID">
+             <property name="toolTip">
+              <string>Restrict the search to the dataset with ID specified here</string>
+             </property>
+             <property name="text">
+              <string>Dataset ID:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEditDatasetID">
+             <property name="toolTip">
+              <string>Restrict the search to the dataset with ID specified here</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
-         <item row="1" column="0">
-          <widget class="QToolButton" name="toolButtonFilterOrgan">
-           <property name="text">
-            <string>Organ  </string>
+         <item>
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
            </property>
-           <property name="popupMode">
-            <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
            </property>
-          </widget>
+          </spacer>
          </item>
         </layout>
        </widget>
@@ -172,10 +234,13 @@
          <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
         </property>
         <property name="selectionMode">
-         <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
+         <enum>QAbstractItemView::SelectionMode::MultiSelection</enum>
         </property>
         <property name="selectionBehavior">
          <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+        </property>
+        <property name="sortingEnabled">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

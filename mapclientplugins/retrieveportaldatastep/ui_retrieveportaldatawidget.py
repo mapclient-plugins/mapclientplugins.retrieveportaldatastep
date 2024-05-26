@@ -26,17 +26,17 @@ class Ui_RetrievePortalDataWidget(object):
         if not RetrievePortalDataWidget.objectName():
             RetrievePortalDataWidget.setObjectName(u"RetrievePortalDataWidget")
         RetrievePortalDataWidget.resize(714, 584)
-        self.verticalLayout_3 = QVBoxLayout(RetrievePortalDataWidget)
-        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.verticalLayout_5 = QVBoxLayout(RetrievePortalDataWidget)
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self.manifestGroupBox = QGroupBox(RetrievePortalDataWidget)
         self.manifestGroupBox.setObjectName(u"manifestGroupBox")
-        self.gridLayout_2 = QGridLayout(self.manifestGroupBox)
-        self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.gridLayout = QGridLayout(self.manifestGroupBox)
+        self.gridLayout.setObjectName(u"gridLayout")
         self.labelSearchTerm = QLabel(self.manifestGroupBox)
         self.labelSearchTerm.setObjectName(u"labelSearchTerm")
         self.labelSearchTerm.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
-        self.gridLayout_2.addWidget(self.labelSearchTerm, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self.labelSearchTerm, 0, 0, 1, 1)
 
         self.lineEditSearch = QLineEdit(self.manifestGroupBox)
         self.lineEditSearch.setObjectName(u"lineEditSearch")
@@ -46,27 +46,65 @@ class Ui_RetrievePortalDataWidget(object):
         sizePolicy.setHeightForWidth(self.lineEditSearch.sizePolicy().hasHeightForWidth())
         self.lineEditSearch.setSizePolicy(sizePolicy)
 
-        self.gridLayout_2.addWidget(self.lineEditSearch, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self.lineEditSearch, 0, 1, 1, 1)
 
-        self.labelSearchType = QLabel(self.manifestGroupBox)
-        self.labelSearchType.setObjectName(u"labelSearchType")
-        self.labelSearchType.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.groupBoxFilter = QGroupBox(self.manifestGroupBox)
+        self.groupBoxFilter.setObjectName(u"groupBoxFilter")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        sizePolicy1.setHorizontalStretch(1)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.groupBoxFilter.sizePolicy().hasHeightForWidth())
+        self.groupBoxFilter.setSizePolicy(sizePolicy1)
+        self.verticalLayout_3 = QVBoxLayout(self.groupBoxFilter)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.toolButtonFilterSpecies = QToolButton(self.groupBoxFilter)
+        self.toolButtonFilterSpecies.setObjectName(u"toolButtonFilterSpecies")
+        self.toolButtonFilterSpecies.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
 
-        self.gridLayout_2.addWidget(self.labelSearchType, 1, 0, 1, 1)
+        self.verticalLayout_3.addWidget(self.toolButtonFilterSpecies)
 
-        self.labelDatasetID = QLabel(self.manifestGroupBox)
-        self.labelDatasetID.setObjectName(u"labelDatasetID")
-        self.labelDatasetID.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+        self.toolButtonFilterOrgan = QToolButton(self.groupBoxFilter)
+        self.toolButtonFilterOrgan.setObjectName(u"toolButtonFilterOrgan")
+        self.toolButtonFilterOrgan.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
 
-        self.gridLayout_2.addWidget(self.labelDatasetID, 2, 0, 1, 1)
+        self.verticalLayout_3.addWidget(self.toolButtonFilterOrgan)
 
-        self.lineEditDatasetID = QLineEdit(self.manifestGroupBox)
-        self.lineEditDatasetID.setObjectName(u"lineEditDatasetID")
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        self.gridLayout_2.addWidget(self.lineEditDatasetID, 2, 1, 1, 1)
+        self.verticalLayout_3.addItem(self.verticalSpacer)
+
+
+        self.gridLayout.addWidget(self.groupBoxFilter, 0, 3, 3, 1)
+
+        self.labelSearchBy = QLabel(self.manifestGroupBox)
+        self.labelSearchBy.setObjectName(u"labelSearchBy")
+        self.labelSearchBy.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
+
+        self.gridLayout.addWidget(self.labelSearchBy, 1, 0, 1, 1)
+
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.comboBoxSearchBy = QComboBox(self.manifestGroupBox)
+        self.comboBoxSearchBy.addItem("")
+        self.comboBoxSearchBy.addItem("")
+        self.comboBoxSearchBy.addItem("")
+        self.comboBoxSearchBy.setObjectName(u"comboBoxSearchBy")
+        self.comboBoxSearchBy.setMinimumSize(QSize(0, 0))
+        self.comboBoxSearchBy.setIconSize(QSize(0, 0))
+        self.comboBoxSearchBy.setFrame(True)
+
+        self.horizontalLayout_3.addWidget(self.comboBoxSearchBy)
+
+        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_3.addItem(self.horizontalSpacer_3)
+
+
+        self.gridLayout.addLayout(self.horizontalLayout_3, 1, 1, 1, 1)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.horizontalLayout_2.setContentsMargins(0, -1, -1, -1)
         self.pushButtonSearch = QPushButton(self.manifestGroupBox)
         self.pushButtonSearch.setObjectName(u"pushButtonSearch")
 
@@ -77,50 +115,37 @@ class Ui_RetrievePortalDataWidget(object):
         self.horizontalLayout_2.addItem(self.horizontalSpacer_2)
 
 
-        self.gridLayout_2.addLayout(self.horizontalLayout_2, 3, 1, 1, 1)
+        self.gridLayout.addLayout(self.horizontalLayout_2, 2, 1, 1, 1)
 
-        self.horizontalLayout_3 = QHBoxLayout()
-        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.comboBoxSearchType = QComboBox(self.manifestGroupBox)
-        self.comboBoxSearchType.addItem("")
-        self.comboBoxSearchType.addItem("")
-        self.comboBoxSearchType.setObjectName(u"comboBoxSearchType")
+        self.groupBoxRestrictTo = QGroupBox(self.manifestGroupBox)
+        self.groupBoxRestrictTo.setObjectName(u"groupBoxRestrictTo")
+        self.verticalLayout_4 = QVBoxLayout(self.groupBoxRestrictTo)
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.horizontalLayout_4 = QHBoxLayout()
+        self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.labelDatasetID = QLabel(self.groupBoxRestrictTo)
+        self.labelDatasetID.setObjectName(u"labelDatasetID")
+        self.labelDatasetID.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
 
-        self.horizontalLayout_3.addWidget(self.comboBoxSearchType)
+        self.horizontalLayout_4.addWidget(self.labelDatasetID)
 
-        self.horizontalSpacer_3 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.lineEditDatasetID = QLineEdit(self.groupBoxRestrictTo)
+        self.lineEditDatasetID.setObjectName(u"lineEditDatasetID")
 
-        self.horizontalLayout_3.addItem(self.horizontalSpacer_3)
-
-
-        self.gridLayout_2.addLayout(self.horizontalLayout_3, 1, 1, 1, 1)
-
-        self.groupBoxFilter = QGroupBox(self.manifestGroupBox)
-        self.groupBoxFilter.setObjectName(u"groupBoxFilter")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        sizePolicy1.setHorizontalStretch(1)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.groupBoxFilter.sizePolicy().hasHeightForWidth())
-        self.groupBoxFilter.setSizePolicy(sizePolicy1)
-        self.gridLayout = QGridLayout(self.groupBoxFilter)
-        self.gridLayout.setObjectName(u"gridLayout")
-        self.toolButtonFilterSpecies = QToolButton(self.groupBoxFilter)
-        self.toolButtonFilterSpecies.setObjectName(u"toolButtonFilterSpecies")
-        self.toolButtonFilterSpecies.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
-
-        self.gridLayout.addWidget(self.toolButtonFilterSpecies, 0, 0, 1, 1)
-
-        self.toolButtonFilterOrgan = QToolButton(self.groupBoxFilter)
-        self.toolButtonFilterOrgan.setObjectName(u"toolButtonFilterOrgan")
-        self.toolButtonFilterOrgan.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
-
-        self.gridLayout.addWidget(self.toolButtonFilterOrgan, 1, 0, 1, 1)
+        self.horizontalLayout_4.addWidget(self.lineEditDatasetID)
 
 
-        self.gridLayout_2.addWidget(self.groupBoxFilter, 0, 2, 4, 1)
+        self.verticalLayout_4.addLayout(self.horizontalLayout_4)
+
+        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.verticalLayout_4.addItem(self.verticalSpacer_2)
 
 
-        self.verticalLayout_3.addWidget(self.manifestGroupBox)
+        self.gridLayout.addWidget(self.groupBoxRestrictTo, 0, 2, 3, 1)
+
+
+        self.verticalLayout_5.addWidget(self.manifestGroupBox)
 
         self.groupBox = QGroupBox(RetrievePortalDataWidget)
         self.groupBox.setObjectName(u"groupBox")
@@ -129,13 +154,14 @@ class Ui_RetrievePortalDataWidget(object):
         self.tableViewSearchResult = QTableView(self.groupBox)
         self.tableViewSearchResult.setObjectName(u"tableViewSearchResult")
         self.tableViewSearchResult.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
-        self.tableViewSearchResult.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.tableViewSearchResult.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
         self.tableViewSearchResult.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.tableViewSearchResult.setSortingEnabled(True)
 
         self.verticalLayout_2.addWidget(self.tableViewSearchResult)
 
 
-        self.verticalLayout_3.addWidget(self.groupBox)
+        self.verticalLayout_5.addWidget(self.groupBox)
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
@@ -153,7 +179,7 @@ class Ui_RetrievePortalDataWidget(object):
         self.horizontalLayout.addItem(self.horizontalSpacer)
 
 
-        self.verticalLayout_3.addLayout(self.horizontalLayout)
+        self.verticalLayout_5.addLayout(self.horizontalLayout)
 
         self.groupBoxDownloadedFileTree = QGroupBox(RetrievePortalDataWidget)
         self.groupBoxDownloadedFileTree.setObjectName(u"groupBoxDownloadedFileTree")
@@ -165,7 +191,7 @@ class Ui_RetrievePortalDataWidget(object):
         self.verticalLayout.addWidget(self.treeViewFileBrowser)
 
 
-        self.verticalLayout_3.addWidget(self.groupBoxDownloadedFileTree)
+        self.verticalLayout_5.addWidget(self.groupBoxDownloadedFileTree)
 
         self.horizontalLayout1 = QHBoxLayout()
         self.horizontalLayout1.setObjectName(u"horizontalLayout1")
@@ -179,7 +205,7 @@ class Ui_RetrievePortalDataWidget(object):
         self.horizontalLayout1.addWidget(self.pushButtonDone)
 
 
-        self.verticalLayout_3.addLayout(self.horizontalLayout1)
+        self.verticalLayout_5.addLayout(self.horizontalLayout1)
 
 
         self.retranslateUi(RetrievePortalDataWidget)
@@ -190,7 +216,16 @@ class Ui_RetrievePortalDataWidget(object):
     def retranslateUi(self, RetrievePortalDataWidget):
         RetrievePortalDataWidget.setWindowTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Search tool", None))
         self.labelSearchTerm.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Search term:", None))
-        self.labelSearchType.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Search type:", None))
+        self.groupBoxFilter.setTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Filter:", None))
+        self.toolButtonFilterSpecies.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Species  ", None))
+        self.toolButtonFilterOrgan.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Organ  ", None))
+        self.labelSearchBy.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Search by:", None))
+        self.comboBoxSearchBy.setItemText(0, QCoreApplication.translate("RetrievePortalDataWidget", u"DOI", None))
+        self.comboBoxSearchBy.setItemText(1, QCoreApplication.translate("RetrievePortalDataWidget", u"filename", None))
+        self.comboBoxSearchBy.setItemText(2, QCoreApplication.translate("RetrievePortalDataWidget", u"mimetype", None))
+
+        self.pushButtonSearch.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Search", None))
+        self.groupBoxRestrictTo.setTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Restrict to:", None))
 #if QT_CONFIG(tooltip)
         self.labelDatasetID.setToolTip(QCoreApplication.translate("RetrievePortalDataWidget", u"Restrict the search to the dataset with ID specified here", None))
 #endif // QT_CONFIG(tooltip)
@@ -198,13 +233,6 @@ class Ui_RetrievePortalDataWidget(object):
 #if QT_CONFIG(tooltip)
         self.lineEditDatasetID.setToolTip(QCoreApplication.translate("RetrievePortalDataWidget", u"Restrict the search to the dataset with ID specified here", None))
 #endif // QT_CONFIG(tooltip)
-        self.pushButtonSearch.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Search", None))
-        self.comboBoxSearchType.setItemText(0, QCoreApplication.translate("RetrievePortalDataWidget", u"by filename", None))
-        self.comboBoxSearchType.setItemText(1, QCoreApplication.translate("RetrievePortalDataWidget", u"by mimetype", None))
-
-        self.groupBoxFilter.setTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Filter:", None))
-        self.toolButtonFilterSpecies.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Species  ", None))
-        self.toolButtonFilterOrgan.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Organ  ", None))
         self.groupBox.setTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Search results:", None))
         self.pushButtonDownload.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Download", None))
         self.groupBoxDownloadedFileTree.setTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Downloaded files:", None))
