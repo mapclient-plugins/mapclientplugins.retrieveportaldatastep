@@ -31,7 +31,10 @@ def readfile(filename, split=False):
 
 readme = readfile("README.rst", split=True)[3:]  # Skip title
 source_license = readfile("LICENSE")
-requires = ['PySide6']  # Minimal requirements listing. Insert additional dependencies here.
+requires = [
+    'PySide6',
+    'sparc.client @ git+https://github.com/hsorby/sparc.client@main#egg=sparc.client'
+]  # Minimal requirements listing. Insert additional dependencies here.
 
 
 setup(
