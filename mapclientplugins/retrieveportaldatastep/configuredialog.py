@@ -3,8 +3,14 @@ import os
 from PySide6 import QtWidgets
 from mapclientplugins.retrieveportaldatastep.ui_configuredialog import Ui_ConfigureDialog
 
+from mapclient.settings.general import get_data_directory
+
 INVALID_STYLE_SHEET = 'background-color: rgba(239, 0, 0, 50)'
 DEFAULT_STYLE_SHEET = ''
+
+
+def _global_output_directory():
+    return os.path.join(get_data_directory(), 'retrieveportaldata-downloads')
 
 
 class ConfigureDialog(QtWidgets.QDialog):
@@ -22,35 +28,39 @@ class ConfigureDialog(QtWidgets.QDialog):
         # and know how many occurrences of the current identifier there should
         # be.
         self._previousIdentifier = ''
-        # Set a place holder for a callable that will get set from the step.
+        # Set a placeholder for a callable that will get set from the step.
         # We will use this method to decide whether the identifier is unique.
         self.identifierOccursCount = None
 
         self._workflow_location = None
-        self._previousLocation = ''
+        self._previous_location = ''
 
-        self._makeConnections()
+        self._make_connections()
 
     def setWorkflowLocation(self, location):
         self._workflow_location = location
 
-    def _makeConnections(self):
+    def _make_connections(self):
         self._ui.lineEdit0.textChanged.connect(self.validate)
         self._ui.pushButtonOutputDirectory.clicked.connect(self._directory_chooser_clicked)
 
     def _directory_chooser_clicked(self):
         # Second parameter returned is the filter chosen
-        location = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select Destination for export', self._previousLocation)
+        if not self._previous_location:
+            self._previous_location = self._workflow_location
+
+        location = QtWidgets.QFileDialog.getExistingDirectory(self, 'Select Destination for export', self._previous_location)
 
         if location:
-            self._previousLocation = location
+            self._previous_location = location
             display_location = self._output_location(location)
-            self._ui.lineEditOutputDirectory.setText(display_location)
+            self._ui.comboBoxOutputDirectory.addItem(display_location)
+            self._ui.comboBoxOutputDirectory.setCurrentIndex(self._ui.comboBoxOutputDirectory.count() - 1)
             self._directory_valid()
 
     def _output_location(self, location=None):
         if location is None:
-            display_path = self._ui.lineEditOutputDirectory.text()
+            display_path = self._ui.comboBoxOutputDirectory.currentText()
         else:
             display_path = location
 
@@ -89,16 +99,26 @@ class ConfigureDialog(QtWidgets.QDialog):
         else:
             self._ui.lineEdit0.setStyleSheet(INVALID_STYLE_SHEET)
 
-        return valid
+        return valid and self._directory_valid()
 
-    def _directory_valid(self):
+    def _output_location_abspath(self):
         dir_path = self._output_location()
 
         if self._workflow_location:
             dir_path = os.path.realpath(os.path.join(self._workflow_location, dir_path))
 
-        directory_valid = os.path.isdir(dir_path) and len(self._ui.lineEditOutputDirectory.text())
-        self._ui.lineEditOutputDirectory.setStyleSheet(DEFAULT_STYLE_SHEET if directory_valid else INVALID_STYLE_SHEET)
+        return dir_path
+
+    def _directory_valid(self):
+        self._ui.comboBoxOutputDirectory.setItemText(0, self._local_output_directory())
+        dir_path = self._output_location_abspath()
+
+        output_directory_exists = os.path.isdir(dir_path)
+        if (self._ui.comboBoxOutputDirectory.currentIndex() == 0 or self._ui.comboBoxOutputDirectory.currentIndex() == 1) and not output_directory_exists:
+            os.mkdir(dir_path)
+
+        directory_valid = os.path.isdir(dir_path) and len(self._ui.comboBoxOutputDirectory.currentText())
+        self._ui.comboBoxOutputDirectory.setStyleSheet(DEFAULT_STYLE_SHEET if directory_valid else INVALID_STYLE_SHEET)
 
         return directory_valid
 
@@ -109,15 +129,26 @@ class ConfigureDialog(QtWidgets.QDialog):
         identifier over the whole of the workflow.
         """
         self._previousIdentifier = self._ui.lineEdit0.text()
-        config = {}
-        config['identifier'] = self._ui.lineEdit0.text()
-        config['outputDir'] = self._output_location()
-        if self._previousLocation:
-            config['previous_location'] = os.path.relpath(self._previousLocation, self._workflow_location)
+        output_directories = []
+        for i in range(2, self._ui.comboBoxOutputDirectory.count()):
+            output_directories.append(self._ui.comboBoxOutputDirectory.itemText(i))
+        config = {
+            'identifier': self._ui.lineEdit0.text(),
+            'output-directory-index': self._ui.comboBoxOutputDirectory.currentIndex(),
+            'output-directories': output_directories,
+        }
+        if self._previous_location:
+            config['previous-location'] = os.path.relpath(self._previous_location, self._workflow_location)
         else:
-            config['previous_location'] = ''
+            config['previous-location'] = ''
 
         return config
+
+    def _local_output_directory(self):
+        return f'{self._ui.lineEdit0.text()}-downloads'
+
+    def get_output_directory(self):
+        return self._output_location_abspath()
 
     def setConfig(self, config):
         """
@@ -127,8 +158,13 @@ class ConfigureDialog(QtWidgets.QDialog):
         """
         self._previousIdentifier = config['identifier']
         self._ui.lineEdit0.setText(config['identifier'])
-        if 'outputDir' in config:
-            self._ui.lineEditOutputDirectory.setText(config['outputDir'])
-        if 'previous_location' in config:
-            self._previousLocation = os.path.join(self._workflow_location, config['previous_location'])
+        self._ui.comboBoxOutputDirectory.addItem(self._local_output_directory())
+        self._ui.comboBoxOutputDirectory.addItem(_global_output_directory())
+        for output_directory in config.get('output-directories', []):
+            self._ui.comboBoxOutputDirectory.addItem(output_directory)
+
+        self._ui.comboBoxOutputDirectory.setCurrentIndex(config.get('output-directory-index', 0))
+
+        if 'previous-location' in config:
+            self._previous_location = os.path.join(self._workflow_location, config['previous-location'])
 

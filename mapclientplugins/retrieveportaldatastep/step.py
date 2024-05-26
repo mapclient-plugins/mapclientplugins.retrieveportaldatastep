@@ -4,6 +4,7 @@ MAP Client Plugin Step
 """
 import json
 import os
+import pathlib
 
 from PySide6 import QtGui, QtWidgets, QtCore
 
@@ -13,10 +14,6 @@ from mapclientplugins.retrieveportaldatastep.retrieveportaldatawidget import Ret
 
 
 class RetrievePortalDataStep(WorkflowStepMountPoint):
-    """
-    Skeleton step which is intended to be a helpful starting point
-    for new steps.
-    """
 
     def __init__(self, location):
         super(RetrievePortalDataStep, self).__init__('Retrieve Portal Data', location)
@@ -34,52 +31,65 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         self._portData0 = None  # http://physiomeproject.org/workflow/1.0/rdf-schema#directory_location
         # Config:
         self._config = {
-            'identifier': '', 'outputDir': ''
+            'identifier': '', 'output-directories': [], 'output-directory-index': 0,
         }
 
+    def _setup_configure_dialog(self, parent=None):
+        d = ConfigureDialog(parent)
+        d.setWorkflowLocation(self._location)
+        d.identifierOccursCount = self._identifierOccursCount
+        d.setConfig(self._config)
+        return d
+
+    def _determine_output_dir(self):
+        d = self._setup_configure_dialog()
+        return d.get_output_directory()
+
+    def _settings_filename(self):
+        return os.path.join(self._location, f"{self._config['identifier']}-settings.json")
+
+    def _get_output_files(self):
+        if not os.path.isfile(self._settings_filename()):
+            with open(self._settings_filename(), "w") as fh:
+                json.dump({}, fh)
+
+        with open(self._settings_filename()) as fh:
+            settings = json.load(fh)
+
+        return [f for f in settings.get("output-files", []) if os.path.isfile(os.path.join(self._determine_output_dir(), f))]
+
+    def _set_output_files(self, output_files):
+        with open(self._settings_filename()) as fh:
+            settings = json.load(fh)
+
+        settings['output-files'] = [pathlib.PureWindowsPath(f).as_posix() for f in output_files]
+
+        with open(self._settings_filename(), "w") as fh:
+            json.dump(settings, fh)
+
     def execute(self):
-        """
-        Add your code here that will kick off the execution of the step.
-        Make sure you call the _doneExecution() method when finished.  This method
-        may be connected up to a button in a widget for example.
-        """
         QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.CursorShape.WaitCursor)
         try:
-            output_dir = self._config['outputDir'] if os.path.isabs(self._config['outputDir']) else os.path.join(
-                self._location, self._config['outputDir'])
-            output_dir = os.path.realpath(output_dir)
-            if not os.path.isdir(output_dir):
-                os.mkdir(output_dir)
-
-            self._view = RetrievePortalDataWidget(output_dir)
-            self._view.registerDoneExecution(self._doneExecution)
+            output_dir = self._determine_output_dir()
+            output_files = self._get_output_files()
+            self._view = RetrievePortalDataWidget(output_dir, output_files)
+            self._view.register_done_execution(self._done_execution)
             self._setCurrentWidget(self._view)
         finally:
             QtWidgets.QApplication.restoreOverrideCursor()
 
-    def getPortData(self, index):
-        """
-        Add your code here that will return the appropriate objects for this step.
-        The index is the index of the port in the port list.  If there is only one
-        provides port for this step then the index can be ignored.
+    def _done_execution(self):
+        output_files = self._view.get_output_files()
+        self._set_output_files(output_files)
+        self._doneExecution()
 
-        :param index: Index of the port to return.
-        """
-        # http://physiomeproject.org/workflow/1.0/rdf-schema#directory_location
-        return self._view._get_output_files()
+    def getPortData(self, index):
+        output_files = self._view.get_output_files()
+        output_dir = self._determine_output_dir()
+        return [os.path.join(output_dir, f) for f in output_files]
 
     def configure(self):
-        """
-        This function will be called when the configure icon on the step is
-        clicked.  It is appropriate to display a configuration dialog at this
-        time.  If the conditions for the configuration of this step are complete
-        then set:
-            self._configured = True
-        """
-        dlg = ConfigureDialog(self._main_window)
-        dlg.setWorkflowLocation(self._location)
-        dlg.identifierOccursCount = self._identifierOccursCount
-        dlg.setConfig(self._config)
+        dlg = self._setup_configure_dialog(self._main_window)
         dlg.validate()
         dlg.setModal(True)
 
@@ -117,10 +127,8 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         """
         self._config.update(json.loads(string))
 
-        d = ConfigureDialog()
-        d.setWorkflowLocation(self._location)
-        d.identifierOccursCount = self._identifierOccursCount
-        d.setConfig(self._config)
+        d = self._setup_configure_dialog()
         self._configured = d.validate()
 
-
+    def getAdditionalConfigFiles(self):
+        return [self._settings_filename()]
