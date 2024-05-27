@@ -4,7 +4,7 @@ Retrieve Portal Data
 Overview
 --------
 
-The **Retrieve Portal Data** is a MAP Client plugin that allows users to search for and download specific datasets from the SPARC portal using a DOI or other identifiers.
+The **Retrieve Portal Data** is a MAP Client plugin that allows users to search for and download files in datasets from the SPARC portal using a DOI or other identifiers.
 
 Specification
 -------------
@@ -17,7 +17,7 @@ Configuration
 This step is used for downloading files from the SPARC portal and providing them as a list of filenames.
 
 The *Output Directory* input is used to specify the directory where the downloaded files will be stored.
-You can either use the default path directly or use the browse button (...) to navigate to your desired directory.
+You can choose to use the local default or global default path directly or use the browse button (...) to navigate to a directory of your own choosing.
 
 
 .. _fig-mcp-retrieve-portal-data-configure-dialog:
@@ -33,7 +33,7 @@ Instructions
 ------------
 
 After configuring the plugin and executing the workflow, the main interface of the plugin appears,
-which includes sections for searching, downloading, and managing files.
+which includes sections for searching, downloading, and setting the files to be provided to other steps.
 
 .. _fig-mcp-retrieve-portal-data-initial-interface:
 
@@ -54,14 +54,15 @@ To search for data, follow these steps:
 
    Search by DOI.
 
-1. **Select Identifier Type**: Choose the identifier type from the `Search by` dropdown (e.g., DOI).
+1. **Select Search By Type**: Choose the search by type from the `Search by` dropdown (e.g., DOI).
 2. **Enter Search Term**: Input your search term in the `Search term` field.
 3. **Execute Search**: Click `Search` to run the search query.
 
 .. note::
     The plugin is currently only able to display search results for the newest versions of the dataset.
+    Older versions of a dataset with a valid DOI will return no results.
 
-If the Identifier Type is `filename`,
+If the `search by` type is `filename`,
 you can further refine your search by restricting it to a specific dataset ID.
 
 .. _fig-mcp-retrieve-portal-data-search-filename:
@@ -72,6 +73,7 @@ you can further refine your search by restricting it to a specific dataset ID.
    Search by filename.
 
 Searching by mimetype allows you to apply filters for species and organ.
+You must use a full mimetype this search does not do a simple text based search.
 
 .. _fig-mcp-retrieve-portal-data-search-mimetype:
 
@@ -111,7 +113,7 @@ After downloading the files, you can select which files are needed for the subse
    Downloaded files.
 
 Use the arrow buttons (`-->` and `<--`) to move files between the `Downloaded files` and `Provided files` sections.
-Files in the `Provided files` section are the ones that will be used in the subsequent steps of your workflow.
+Files in the `Provided files` section are the ones that will be given to the subsequent steps of your workflow.
 
 .. note::
     Ensure you have a stable internet connection to download data from the portal.
