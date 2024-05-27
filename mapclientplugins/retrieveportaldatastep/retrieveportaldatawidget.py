@@ -140,7 +140,7 @@ def _return_scicruncth_search_result(search_text, search_type, facets):
             "objects.additional_mimetype.name",
             "objects.dataset.path"
         ]
-        req = form_scicrunch_match_request("item.curie", search_text, source_fields, size=result_size)
+        req = form_scicrunch_match_request("item.curie", search_text, source_fields, size=result_size, start=0)
     else:
         print("Something has gone wrong!", search_type, "is not a handled search type.")
 
