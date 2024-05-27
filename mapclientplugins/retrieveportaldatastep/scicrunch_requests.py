@@ -99,13 +99,13 @@ def create_filter_request(query, facets, size, start, fields=None):
     return data
 
 
-def form_scicrunch_match_request(match_field, match_value, source_fields):
+def form_scicrunch_match_request(match_field, match_value, source_fields, size=20, start=0):
     return {
-        "size": 20,
-        "from": 0,
+        "size": size,
+        "from": start,
         "query": {
             "match": {
-                "item.curie": "DOI:10.26275/d52i-yves"
+                match_field: f"DOI:{match_value}"
             }
         },
         "_source": source_fields
