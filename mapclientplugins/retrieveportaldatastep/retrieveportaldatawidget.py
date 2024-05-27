@@ -104,7 +104,7 @@ def _standardise_doi_form(text):
     POSSIBLE_SUFFIXES = ["DOI:", "https://doi.org/", "http://dx.doi.org/"]
     for suffix in POSSIBLE_SUFFIXES:
         if text.startswith(suffix):
-            text = text.replace(suffix)
+            text = text.replace(suffix, "")
             text = text.strip()
 
     return text
@@ -140,7 +140,7 @@ def _return_scicruncth_search_result(search_text, search_type, facets):
             "objects.additional_mimetype.name",
             "objects.dataset.path"
         ]
-        req = form_scicrunch_match_request("item.curie", search_text, source_fields)
+        req = form_scicrunch_match_request("item.curie", search_text, source_fields, size=result_size)
     else:
         print("Something has gone wrong!", search_type, "is not a handled search type.")
 
