@@ -3,7 +3,7 @@
 MAP Client Plugin - Generated from MAP Client v0.20.0
 """
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 __author__ = 'Kay Wang'
 __stepname__ = 'Retrieve Portal Data'
 __location__ = 'https://github.com/mapclient-plugins/mapclientplugins.retrieveportaldata'
