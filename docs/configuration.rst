@@ -1,4 +1,4 @@
-. _mcp-retrieve-portal-data-configuration:
+.. _mcp-retrieve-portal-data-configuration:
 
 Configuration
 -------------
