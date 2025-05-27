@@ -482,6 +482,9 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
 
         for index in indexes:
             item = self._list_files[index.row()]
+            if item.get('datasetPath', '') == '':
+                item['datasetPath'] = _determine_dataset_path(item['uri'])
+
             task = FileDownloadTask(item, self._output_dir, self._pennsieve_service)
             task.signals.finished.connect(download_dialog.update_progress)
             thread_pool.start(task)
@@ -504,5 +507,5 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
 
 
 def _form_local_destination(base_dir, info):
-    near_relative_local_path = info['datasetPath'].replace("files/", "")
-    return os.path.join(base_dir, info['datasetId'], info['datasetVersion'], near_relative_local_path)
+    near_relative_local_path = info['datasetPath'].replace('files/', '')
+    return os.path.join(base_dir, str(info['datasetId']), str(info['datasetVersion']), near_relative_local_path)
