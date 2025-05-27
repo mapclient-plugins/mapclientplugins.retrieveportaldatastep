@@ -209,7 +209,6 @@ class DownloadSignals(QtCore.QObject):
 
 
 class FileDownloadTask(QtCore.QRunnable):
-    finished = QtCore.Signal(str)
 
     def __init__(self, item, output_dir, pennsieve_service):
         super().__init__()
@@ -218,7 +217,6 @@ class FileDownloadTask(QtCore.QRunnable):
         self._pennsieve_service = pennsieve_service
         self.signals = DownloadSignals()
 
-    # @Slot()
     def run(self):
         local_destination = _form_local_destination(self._output_dir, self._item)
         local_dir = os.path.dirname(local_destination)
@@ -503,12 +501,6 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
 
     def register_done_execution(self, callback):
         self._callback = callback
-
-
-def _fix_missing_uri(item, missing_uris):
-    if not item["uri"]:
-        uri_suffix = missing_uris[item["datasetId"]]
-        item["uri"] = f"{uri_suffix}files/{item['datasetPath']}"
 
 
 def _form_local_destination(base_dir, info):
