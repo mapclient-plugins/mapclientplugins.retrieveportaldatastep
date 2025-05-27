@@ -270,7 +270,7 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
             self._model.setItem(row, 1, item)
             item = QtGui.QStandardItem(f"{file_list[row]['datasetVersion']}")
             self._model.setItem(row, 2, item)
-            mimetype_approx = file_list[row]['mimetype'] if file_list[row].get('mimetype', '') else file_list[row]['fileType']
+            mimetype_approx = file_list[row]['mimetype'] if file_list[row].get('mimetype', '') else file_list[row].get('fileType', '')
             item = QtGui.QStandardItem(f"{mimetype_approx}")
             self._model.setItem(row, 3, item)
             dataset_path = file_list[row]['datasetPath'] if file_list[row].get('datasetPath', '') else _determine_dataset_path(file_list[row]['uri'])
