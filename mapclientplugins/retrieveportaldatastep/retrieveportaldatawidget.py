@@ -1,14 +1,17 @@
+import base64
+import hashlib
 import json
 import os
-import hashlib
+import requests
+
 from urllib.parse import urlparse
 
-import requests
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from mapclientplugins.retrieveportaldatastep.ui_retrieveportaldatawidget import Ui_RetrievePortalDataWidget
 from mapclientplugins.retrieveportaldatastep.definitions import DEFAULT_VALUE, DEFAULT_HEADERS
 from mapclientplugins.retrieveportaldatastep.scicrunch_requests import create_filter_request, form_scicrunch_match_request
+from mapclientplugins.retrieveportaldatastep.downloadprogressdialog import DownloadProgressDialog
 
 from sparc.client.services.pennsieve import PennsieveService
 from sparc.client.services.metadata import MetadataService
@@ -178,6 +181,62 @@ def _determine_dataset_path(uri):
     return parsed_object.path.split("files/")[1]
 
 
+def get_sha256(file_path):
+    if not os.path.isfile(file_path):
+        return '---'
+
+    with open(file_path, 'rb') as f:
+        buf = f.read()
+        sha256_hash = hashlib.sha256(buf).digest()
+
+    return base64.b64encode(sha256_hash).decode()
+
+
+def _form_pennsieve_download_file_endpoint(item):
+    return f'https://api.pennsieve.io/discover/datasets/{item["datasetId"]}/versions/{item["datasetVersion"]}/files'
+
+
+def safe_makedirs(path):
+    try:
+        os.makedirs(path, exist_ok=True)
+    except FileExistsError:
+        # Another thread might have created it between the check and the call
+        pass
+
+
+class DownloadSignals(QtCore.QObject):
+    finished = QtCore.Signal(str)  # Emit the file path or name when done
+
+
+class FileDownloadTask(QtCore.QRunnable):
+
+    def __init__(self, item, output_dir, pennsieve_service):
+        super().__init__()
+        self._item = item
+        self._output_dir = output_dir
+        self._pennsieve_service = pennsieve_service
+        self.signals = DownloadSignals()
+
+    def run(self):
+        local_destination = _form_local_destination(self._output_dir, self._item)
+        local_dir = os.path.dirname(local_destination)
+        safe_makedirs(local_dir)
+
+        uri = _form_pennsieve_download_file_endpoint(self._item)
+        params = {'path': self._item['datasetPath']} if self._item['datasetPath'].startswith('files/') else {'path': f'files/{self._item["datasetPath"]}'}
+        response = self._pennsieve_service.get(uri, params=params)
+
+        if response.get('sha256', '') != get_sha256(local_destination):
+            self._pennsieve_service.download_file({
+                'datasetId': self._item['datasetId'],
+                'datasetVersion': self._item['datasetVersion'],
+                'uri': f'/////{response.get("path")}'
+            }, local_destination)
+
+        # Emit signal when done
+        self.signals.finished.emit(local_destination)
+
+
 class RetrievePortalDataWidget(QtWidgets.QWidget):
 
     def __init__(self, output_dir, output_files, parent=None):
@@ -270,7 +329,7 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
             self._model.setItem(row, 1, item)
             item = QtGui.QStandardItem(f"{file_list[row]['datasetVersion']}")
             self._model.setItem(row, 2, item)
-            mimetype_approx = file_list[row]['mimetype'] if file_list[row].get('mimetype', '') else file_list[row]['fileType']
+            mimetype_approx = file_list[row]['mimetype'] if file_list[row].get('mimetype', '') else file_list[row].get('fileType', '')
             item = QtGui.QStandardItem(f"{mimetype_approx}")
             self._model.setItem(row, 3, item)
             dataset_path = file_list[row]['datasetPath'] if file_list[row].get('datasetPath', '') else _determine_dataset_path(file_list[row]['uri'])
@@ -410,64 +469,25 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
     def _file_has_updates(self, filename):
         return filename in [f for f in os.listdir(self._output_dir) if os.path.isfile(os.path.join(self._output_dir, f))]
 
-    def _check_same_file(self, file1, file2):
-        digests = []
-        hasher = hashlib.md5()
-        with open(file1, 'rb') as f:
-            buf = f.read()
-            hasher.update(buf)
-            a = hasher.hexdigest()
-            digests.append(a)
-            print(a)
-        with open(file2, 'rb') as f:
-            buf = f.read()
-            hasher.update(buf)
-            a = hasher.hexdigest()
-            digests.append(a)
-            print(a)
-
-        print(digests[0] == digests[1])
-        return digests[0] == digests[1]
-
     def _get_pennsieve_uri_suffix(self, dataset_id):
         result = self._pennsieve_service.list_files(dataset_id=dataset_id, query='manifest', file_type='json')
         return result[0]["uri"].replace("manifest.json", "")
 
     def _download_button_clicked(self):
         indexes = self._ui.tableViewSearchResult.selectionModel().selectedRows()
+        thread_pool = QtCore.QThreadPool.globalInstance()
 
-        # Pre-search for missing Pennsieve URIs.
-        missing_uris = {}
+        download_dialog = DownloadProgressDialog(len(indexes), self)
+        download_dialog.show()
+
         for index in indexes:
             item = self._list_files[index.row()]
-            if not item["uri"] and item["datasetId"] not in missing_uris:
-                missing_uris[item["datasetId"]] = self._get_pennsieve_uri_suffix(item["datasetId"])
+            if item.get('datasetPath', '') == '':
+                item['datasetPath'] = _determine_dataset_path(item['uri'])
 
-        # Download files one at a time.
-        for index in indexes:
-            item = self._list_files[index.row()]
-            _fix_missing_uri(item, missing_uris)
-            local_destination = _form_local_destination(self._output_dir, item)
-
-            # Prepare missing directory structure for asset.
-            local_dir = os.path.dirname(local_destination)
-            if not os.path.isdir(local_dir):
-                os.makedirs(local_dir)
-
-            do_download = False
-            if self._file_exists(local_destination):
-                dlg = QtWidgets.QMessageBox(self)
-                dlg.setWindowTitle("File already exists!")
-                dlg.setText("Do you want to replace the existing file?")
-                dlg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
-                ret = dlg.exec()
-                if ret == QtWidgets.QMessageBox.StandardButton.Yes:
-                    do_download = True
-            else:
-                do_download = True
-
-            if do_download:
-                self._pennsieve_service.download_file(item, local_destination)
+            task = FileDownloadTask(item, self._output_dir, self._pennsieve_service)
+            task.signals.finished.connect(download_dialog.update_progress)
+            thread_pool.start(task)
 
     def _export_vtk_button_clicked(self):
         indexes = self._ui.tableViewSearchResult.selectionModel().selectedRows()
@@ -486,16 +506,6 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._callback = callback
 
 
-def _fix_missing_uri(item, missing_uris):
-    if not item["uri"]:
-        uri_suffix = missing_uris[item["datasetId"]]
-        item["uri"] = f"{uri_suffix}files/{item['datasetPath']}"
-
-
 def _form_local_destination(base_dir, info):
-    parsed_object = urlparse(info["uri"])
-    near_relative_local_path = parsed_object.path.replace("files/", "")
-    index = near_relative_local_path.find("/")
-    relative_local_path = near_relative_local_path[index + 1:]
-
-    return os.path.join(base_dir, relative_local_path)
+    near_relative_local_path = info['datasetPath'].replace('files/', '')
+    return os.path.join(base_dir, str(info['datasetId']), str(info['datasetVersion']), near_relative_local_path)
