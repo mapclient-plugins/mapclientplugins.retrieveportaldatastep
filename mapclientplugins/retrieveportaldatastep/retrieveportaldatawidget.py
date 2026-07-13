@@ -252,12 +252,47 @@ class FileDownloadTask(QtCore.QRunnable):
             self.signals.finished.emit(local_destination)
 
 
+class SearchResultFilterProxy(QtCore.QSortFilterProxyModel):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self._row = -1
+        self._filter = ""
+
+    def set_filter_on_row(self, row, filter_text):
+        self._row = row
+        self._filter = filter_text
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, source_row, source_parent):
+
+        if self._filter == "":
+            return True
+
+        model = self.sourceModel()
+
+        if self._row == -1:
+            all_text = [model.index(source_row, column).data() or "" for column in range(model.columnCount())]
+            text = ' '.join(all_text)
+        else:
+            text = model.index(source_row, self._row).data() or ""
+
+        reg_exp = QtCore.QRegularExpression.fromWildcard(
+            self._filter,
+            options=QtCore.QRegularExpression.WildcardConversionOption.UnanchoredWildcardConversion
+        )
+
+        return reg_exp.match(text).hasMatch()
+
+
 class RetrievePortalDataWidget(QtWidgets.QWidget):
 
     def __init__(self, output_dir, output_files, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
 
         self._model = None
+        self._proxy_model = None
         self._selection_model = None
         self._list_files = None
         self._callback = None
@@ -310,8 +345,10 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._file_selection_model.selectionChanged.connect(self._update_ui)
         self._provide_selection_model = self._ui.listViewProvidedFiles.selectionModel()
         self._provide_selection_model.selectionChanged.connect(self._update_ui)
+        self._ui.comboBoxSearchResultFilter.currentIndexChanged.connect(self._search_result_filter_changed)
 
     def _update_ui(self):
+        results_available = self._proxy_model.rowCount() > 0 if self._proxy_model else False
         ready = len(self._selection_model.selectedRows()) > 0 if self._selection_model else False
         transfer_in = len(self._file_selection_model.selectedRows()) > 0 if self._file_selection_model else False
         transfer_out = len(self._provide_selection_model.selectedRows()) > 0 if self._provide_selection_model else False
@@ -325,6 +362,10 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._ui.pushButtonTransferIn.setEnabled(transfer_in)
         self._ui.pushButtonTransferOut.setEnabled(transfer_out)
         self._ui.pushButtonSearch.setEnabled(search_text)
+        self._ui.pushButtonClearSelection.setEnabled(ready)
+        self._ui.pushButtonSelectAll.setEnabled(results_available)
+        self._ui.lineEditSearchResultFilter.setEnabled(results_available)
+        self._ui.comboBoxSearchResultFilter.setEnabled(results_available)
 
     def _file_browser_expanded(self, index):
         if index.isValid() and index.column() == 0:
@@ -348,12 +389,36 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
             item = QtGui.QStandardItem(f"{dataset_path}")
             self._model.setItem(row, 4, item)
 
-        self._ui.tableViewSearchResult.setModel(self._model)
+        self._proxy_model = SearchResultFilterProxy(self)
+        self._proxy_model.setSourceModel(self._model)
+        self._ui.tableViewSearchResult.setModel(self._proxy_model)
         self._ui.tableViewSearchResult.horizontalHeader().setSectionResizeMode(
             QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         self._ui.tableViewSearchResult.horizontalHeader().setStretchLastSection(True)
         self._selection_model = self._ui.tableViewSearchResult.selectionModel()
         self._selection_model.selectionChanged.connect(self._update_ui)
+        self._ui.pushButtonClearSelection.clicked.connect(self._selection_model.clearSelection)
+        self._ui.pushButtonSelectAll.clicked.connect(self._select_all_search_results)
+        self._ui.lineEditSearchResultFilter.textEdited.connect(self._filter_search_results)
+
+    def _filter_search_results(self):
+        self._search_result_filter_changed()
+
+    def _search_result_filter_changed(self):
+        filter_type_map = {
+            "Dataset Path": 4,
+            "Filename": 0,
+            "Mimetype": 3,
+        }
+        current_filter = self._ui.comboBoxSearchResultFilter.currentText()
+        current_text = self._ui.lineEditSearchResultFilter.text()
+        self._proxy_model.set_filter_on_row(filter_type_map.get(current_filter, -1), current_text)
+
+    def _select_all_search_results(self):
+        top_left = self._proxy_model.index(0, 0)
+        bottom_right = self._proxy_model.index(self._proxy_model.rowCount() - 1, self._proxy_model.columnCount() - 1)
+        selection = QtCore.QItemSelection(top_left, bottom_right)
+        self._selection_model.select(selection, QtCore.QItemSelectionModel.SelectionFlag.Select)
 
     def _transfer_in_clicked(self):
         indexes = self._ui.treeViewFileBrowser.selectionModel().selectedRows()
@@ -421,6 +486,7 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._set_table(self._list_files)
         self._ui.pushButtonSearch.setText("Search")
         self._ui.pushButtonSearch.setEnabled(True)
+        self._update_ui()
 
     def _update_completer_model(self, text):
         word_bank = _word_bank(text)

@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'retrieveportaldatawidget.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.9.2
+## Created by: Qt User Interface Compiler version 6.11.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -151,6 +151,44 @@ class Ui_RetrievePortalDataWidget(object):
         self.groupBox.setObjectName(u"groupBox")
         self.verticalLayout_2 = QVBoxLayout(self.groupBox)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.labelSearchResultFilter = QLabel(self.groupBox)
+        self.labelSearchResultFilter.setObjectName(u"labelSearchResultFilter")
+
+        self.horizontalLayout_6.addWidget(self.labelSearchResultFilter)
+
+        self.lineEditSearchResultFilter = QLineEdit(self.groupBox)
+        self.lineEditSearchResultFilter.setObjectName(u"lineEditSearchResultFilter")
+
+        self.horizontalLayout_6.addWidget(self.lineEditSearchResultFilter)
+
+        self.comboBoxSearchResultFilter = QComboBox(self.groupBox)
+        self.comboBoxSearchResultFilter.addItem("")
+        self.comboBoxSearchResultFilter.addItem("")
+        self.comboBoxSearchResultFilter.addItem("")
+        self.comboBoxSearchResultFilter.addItem("")
+        self.comboBoxSearchResultFilter.setObjectName(u"comboBoxSearchResultFilter")
+
+        self.horizontalLayout_6.addWidget(self.comboBoxSearchResultFilter)
+
+        self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_6.addItem(self.horizontalSpacer_4)
+
+        self.pushButtonSelectAll = QPushButton(self.groupBox)
+        self.pushButtonSelectAll.setObjectName(u"pushButtonSelectAll")
+
+        self.horizontalLayout_6.addWidget(self.pushButtonSelectAll)
+
+        self.pushButtonClearSelection = QPushButton(self.groupBox)
+        self.pushButtonClearSelection.setObjectName(u"pushButtonClearSelection")
+
+        self.horizontalLayout_6.addWidget(self.pushButtonClearSelection)
+
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout_6)
+
         self.tableViewSearchResult = QTableView(self.groupBox)
         self.tableViewSearchResult.setObjectName(u"tableViewSearchResult")
         self.tableViewSearchResult.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -313,6 +351,14 @@ class Ui_RetrievePortalDataWidget(object):
         self.lineEditDatasetID.setToolTip(QCoreApplication.translate("RetrievePortalDataWidget", u"Restrict the search to the dataset with ID specified here", None))
 #endif // QT_CONFIG(tooltip)
         self.groupBox.setTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Search results:", None))
+        self.labelSearchResultFilter.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Filter: ", None))
+        self.comboBoxSearchResultFilter.setItemText(0, QCoreApplication.translate("RetrievePortalDataWidget", u"All", None))
+        self.comboBoxSearchResultFilter.setItemText(1, QCoreApplication.translate("RetrievePortalDataWidget", u"Filename", None))
+        self.comboBoxSearchResultFilter.setItemText(2, QCoreApplication.translate("RetrievePortalDataWidget", u"Mimetype", None))
+        self.comboBoxSearchResultFilter.setItemText(3, QCoreApplication.translate("RetrievePortalDataWidget", u"Dataset Path", None))
+
+        self.pushButtonSelectAll.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Select All", None))
+        self.pushButtonClearSelection.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Clear Selection", None))
         self.pushButtonDownload.setText(QCoreApplication.translate("RetrievePortalDataWidget", u"Download", None))
         self.groupBoxDownloadedFileTree.setTitle(QCoreApplication.translate("RetrievePortalDataWidget", u"Downloaded files:", None))
 #if QT_CONFIG(tooltip)
