@@ -2,9 +2,8 @@ import base64
 import hashlib
 import json
 import os
-import shutil
-
 import requests
+import threading
 
 from urllib.parse import urlparse
 
@@ -209,27 +208,40 @@ def safe_makedirs(path):
 
 
 class DownloadSignals(QtCore.QObject):
-    finished = QtCore.Signal(str)  # Emit the file path or name when done
+    progress = QtCore.Signal(str, float)
+    # Emit the file path when done
+    finished = QtCore.Signal(str)
 
 
 class FileDownloadTask(QtCore.QRunnable):
 
-    def __init__(self, item, output_dir):
+    def __init__(self, item, output_dir, cancel_event: threading.Event):
         super().__init__()
         self._item = item
         self._output_dir = output_dir
+        self._cancel_event = cancel_event
         self.signals = DownloadSignals()
 
     def run(self):
+        # If cancellation was already requested before this task started, exit early
+        if self._cancel_event.is_set():
+            return
+
         local_destination = "error"
+        was_cancelled = False
+
         try:
             local_destination = _form_local_destination(self._output_dir, self._item)
             local_dir = os.path.dirname(local_destination)
             safe_makedirs(local_dir)
 
             uri = _form_pennsieve_download_file_endpoint(self._item)
-            params = {'path': self._item['datasetPath']} if self._item['datasetPath'].startswith('files/') else {
-                'path': f'files/{self._item["datasetPath"]}'}
+            params = (
+                {'path': self._item['datasetPath']}
+                if self._item['datasetPath'].startswith('files/')
+                else {'path': f'files/{self._item["datasetPath"]}'}
+            )
+
             response = requests.get(uri, params=params, stream=True)
 
             json_data = response.json()
@@ -243,13 +255,45 @@ class FileDownloadTask(QtCore.QRunnable):
                 }
                 discover_zipit_url = "https://api.pennsieve.io/zipit/discover"
                 headers = {"content-type": "application/json"}
-                response = requests.post(discover_zipit_url, json=req, headers=headers, stream=True)
-                with open(local_destination, 'wb') as f:
-                    shutil.copyfileobj(response.raw, f)
+                last_emitted_progress = -1
+
+                # Use requests with a timeout so threads don't hang indefinitely on bad connections.
+                with requests.post(
+                    discover_zipit_url, json=req, headers=headers, stream=True, timeout=10
+                ) as response:
+                    response.raise_for_status()
+
+                    file_size = json_data.get('size', 0)
+                    bytes_downloaded = 0
+                    # Write chunks to disk and check cancellation flag periodically.
+                    with open(local_destination, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=64 * 1024):  # 64 KB chunks
+                            if self._cancel_event.is_set():
+                                was_cancelled = True
+                                break
+                            if chunk:
+                                bytes_downloaded += len(chunk)
+                                f.write(chunk)
+                                current_progress = bytes_downloaded / file_size
+                                if current_progress > 1.05 * last_emitted_progress:
+                                    self.signals.progress.emit(local_destination, current_progress)
+                                    last_emitted_progress = current_progress
+
+        except Exception as e:
+            print("Handling unknown exception in FileDownloadTask:")
+            print(e)
 
         finally:
-            # Emit signal when done
-            self.signals.finished.emit(local_destination)
+            if was_cancelled:
+                # Cleanup partially downloaded file on cancellation.
+                if os.path.exists(local_destination) and local_destination != "error":
+                    try:
+                        os.remove(local_destination)
+                    except OSError:
+                        pass
+            else:
+                # Only emit finished signal if the download wasn't cancelled.
+                self.signals.finished.emit(local_destination)
 
 
 class SearchResultFilterProxy(QtCore.QSortFilterProxyModel):
@@ -296,6 +340,7 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._selection_model = None
         self._list_files = None
         self._callback = None
+        self._cancel_event = None
         self._output_dir = output_dir
         self._ui = Ui_RetrievePortalDataWidget()
         self._ui.setupUi(self)
@@ -564,8 +609,11 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         indexes = self._ui.tableViewSearchResult.selectionModel().selectedRows()
         thread_pool = QtCore.QThreadPool.globalInstance()
 
+        self._cancel_event = threading.Event()
+
         download_dialog = DownloadProgressDialog(len(indexes), self)
         download_dialog.show()
+        download_dialog.rejected.connect(self._cancelled_download)
 
         for index in indexes:
             model_index = index.siblingAtColumn(0)
@@ -573,9 +621,18 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
             if item_data.get('datasetPath') is None:
                 item_data['datasetPath'] = _determine_dataset_path(item_data['uri'])
 
-            task = FileDownloadTask(item_data, self._output_dir)
-            task.signals.finished.connect(download_dialog.update_progress)
+            task = FileDownloadTask(item_data, self._output_dir, self._cancel_event)
+            task.signals.finished.connect(download_dialog.on_file_downloaded)
+            task.signals.progress.connect(download_dialog.on_file_progress)
             thread_pool.start(task)
+
+    def _cancelled_download(self):
+        # 1. Signal all currently executing threads to stop streaming
+        if self._cancel_event is not None:
+            self._cancel_event.set()
+
+        # 2. Clear any tasks waiting in the QThreadPool queue that haven't started yet
+        QtCore.QThreadPool.globalInstance().clear()
 
     def _export_vtk_button_clicked(self):
         indexes = self._ui.tableViewSearchResult.selectionModel().selectedRows()
