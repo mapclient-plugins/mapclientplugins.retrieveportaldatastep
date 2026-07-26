@@ -10,6 +10,7 @@ from PySide6 import QtGui, QtWidgets, QtCore
 
 from mapclient.mountpoints.workflowstep import WorkflowStepMountPoint
 from mapclientplugins.retrieveportaldatastep.configuredialog import ConfigureDialog
+from mapclientplugins.retrieveportaldatastep.definitions import MANIFEST_FILENAME
 from mapclientplugins.retrieveportaldatastep.retrieveportaldatawidget import RetrievePortalDataWidget
 
 
@@ -131,4 +132,5 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         self._configured = d.validate()
 
     def getAdditionalConfigFiles(self):
-        return [self._settings_filename()]
+        manifest_path = os.path.join(self._determine_output_dir(), MANIFEST_FILENAME)
+        return [self._settings_filename(), manifest_path]

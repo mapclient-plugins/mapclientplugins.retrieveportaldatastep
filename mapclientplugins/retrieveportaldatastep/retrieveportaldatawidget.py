@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from mapclientplugins.retrieveportaldatastep.ui_retrieveportaldatawidget import Ui_RetrievePortalDataWidget
-from mapclientplugins.retrieveportaldatastep.definitions import DEFAULT_VALUE, DEFAULT_HEADERS
+from mapclientplugins.retrieveportaldatastep.definitions import DEFAULT_VALUE, DEFAULT_HEADERS, MANIFEST_FILENAME
 from mapclientplugins.retrieveportaldatastep.scicrunch_requests import create_filter_request, \
     form_scicrunch_match_request
 from mapclientplugins.retrieveportaldatastep.downloadprogressdialog import DownloadProgressDialog
@@ -209,8 +209,7 @@ def safe_makedirs(path):
 
 class DownloadSignals(QtCore.QObject):
     progress = QtCore.Signal(str, float)
-    # Emit the file path when done
-    finished = QtCore.Signal(str)
+    finished = QtCore.Signal(str, str)
 
 
 class FileDownloadTask(QtCore.QRunnable):
@@ -275,7 +274,7 @@ class FileDownloadTask(QtCore.QRunnable):
                                 bytes_downloaded += len(chunk)
                                 f.write(chunk)
                                 current_progress = bytes_downloaded / file_size
-                                if current_progress > 1.05 * last_emitted_progress:
+                                if current_progress > 1.1 * last_emitted_progress:
                                     self.signals.progress.emit(local_destination, current_progress)
                                     last_emitted_progress = current_progress
 
@@ -293,7 +292,7 @@ class FileDownloadTask(QtCore.QRunnable):
                         pass
             else:
                 # Only emit finished signal if the download wasn't cancelled.
-                self.signals.finished.emit(local_destination)
+                self.signals.finished.emit(local_destination, json.dumps(self._item))
 
 
 class SearchResultFilterProxy(QtCore.QSortFilterProxyModel):
@@ -341,7 +340,10 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._list_files = None
         self._callback = None
         self._cancel_event = None
+        self._completing = False
+        self._dataset_id_completing = False
         self._output_dir = output_dir
+
         self._ui = Ui_RetrievePortalDataWidget()
         self._ui.setupUi(self)
         self._ui.toolButtonFilterSpecies.setMenu(_create_filter_menu(self._ui.toolButtonFilterSpecies, SPECIES))
@@ -371,8 +373,8 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._make_connections()
         self._update_ui()
 
-        self._completing = False
-        self._dataset_id_completing = False
+        # Check for missing cached files on startup.
+        QtCore.QTimer.singleShot(100, self._check_and_restore_cache)
 
     def _make_connections(self):
         self._ui.pushButtonSearch.clicked.connect(self._search_button_clicked)
@@ -597,41 +599,92 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._retrieve_data()
         self._save_search()
 
-    def _file_exists(self, filename):
-        return filename in [f for f in os.listdir(self._output_dir) if
-                            os.path.isfile(os.path.join(self._output_dir, f))]
+    def _check_and_restore_cache(self):
+        """Scans manifest and provided files list to restore missing items."""
+        manifest = _load_manifest(self._output_dir)
+        if not manifest:
+            return
 
-    def _file_has_updates(self, filename):
-        return filename in [f for f in os.listdir(self._output_dir) if
-                            os.path.isfile(os.path.join(self._output_dir, f))]
+        missing_items = []
+        provided_files = self.get_output_files()
+
+        for rel_path, item_data in manifest.items():
+            full_path = os.path.join(self._output_dir, rel_path)
+
+            # If file is missing or explicitly needed by the provided files list
+            if not os.path.exists(full_path) or (
+                    rel_path in provided_files and not os.path.exists(full_path)
+            ):
+                missing_items.append(item_data)
+
+        if missing_items:
+            reply = QtWidgets.QMessageBox.question(
+                self,
+                "Restore Missing Cache",
+                f"Found {len(missing_items)} missing cached file(s) on disk. Would you like to restore them now?",
+                QtWidgets.QMessageBox.StandardButton.Yes
+                | QtWidgets.QMessageBox.StandardButton.No,
+            )
+            if reply == QtWidgets.QMessageBox.StandardButton.Yes:
+                self._start_download_batch(missing_items)
+
+    def _start_download_batch(self, items_data):
+        if not items_data:
+            return
+
+        thread_pool = QtCore.QThreadPool.globalInstance()
+        self._cancel_event = threading.Event()
+
+        download_dialog = DownloadProgressDialog(len(items_data), self)
+        download_dialog.show()
+        download_dialog.rejected.connect(self._cancelled_download)
+
+        for item_data in items_data:
+            task = FileDownloadTask(item_data, self._output_dir, self._cancel_event)
+
+            task.signals.finished.connect(self._on_download_finished)
+            task.signals.finished.connect(download_dialog.on_file_downloaded)
+            task.signals.progress.connect(download_dialog.on_file_progress)
+
+            thread_pool.start(task)
+
+    def _on_download_finished(self, local_destination, item_data_str):
+        if local_destination != "error" and os.path.exists(local_destination):
+            # Update cache manifest.
+            item_data = json.loads(item_data_str)
+            _save_manifest_entry(self._output_dir, item_data)
+
+            # Automatically populate output files list if not present.
+            self._populate_output_list(local_destination)
+
+    def _populate_output_list(self, local_destination):
+        rel_path = os.path.relpath(local_destination, self._output_dir)
+        list_model = self._ui.listViewProvidedFiles.model()
+        current_strings = list_model.stringList()
+        if rel_path not in current_strings:
+            current_strings.append(rel_path)
+            list_model.setStringList(current_strings)
+            self._update_ui()
 
     def _download_button_clicked(self):
         indexes = self._ui.tableViewSearchResult.selectionModel().selectedRows()
-        thread_pool = QtCore.QThreadPool.globalInstance()
-
-        self._cancel_event = threading.Event()
-
-        download_dialog = DownloadProgressDialog(len(indexes), self)
-        download_dialog.show()
-        download_dialog.rejected.connect(self._cancelled_download)
+        items_to_download = []
 
         for index in indexes:
             model_index = index.siblingAtColumn(0)
             item_data = model_index.data(QtCore.Qt.ItemDataRole.UserRole)
             if item_data.get('datasetPath') is None:
                 item_data['datasetPath'] = _determine_dataset_path(item_data['uri'])
+            items_to_download.append(item_data)
 
-            task = FileDownloadTask(item_data, self._output_dir, self._cancel_event)
-            task.signals.finished.connect(download_dialog.on_file_downloaded)
-            task.signals.progress.connect(download_dialog.on_file_progress)
-            thread_pool.start(task)
+        self._start_download_batch(items_to_download)
 
     def _cancelled_download(self):
-        # 1. Signal all currently executing threads to stop streaming
+        # 1. Signal all currently executing threads to stop streaming.
         if self._cancel_event is not None:
             self._cancel_event.set()
 
-        # 2. Clear any tasks waiting in the QThreadPool queue that haven't started yet
+        # 2. Clear any tasks waiting in the QThreadPool queue that haven't started yet.
         QtCore.QThreadPool.globalInstance().clear()
 
     def _export_vtk_button_clicked(self):
@@ -645,6 +698,29 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         return list_model.stringList()
 
     def _done_button_clicked(self):
+        # Validate all provided files exist before completing step
+        manifest = _load_manifest(self._output_dir)
+        provided_files = self.get_output_files()
+        missing_required = []
+
+        for rel_path in provided_files:
+            full_path = os.path.join(self._output_dir, rel_path)
+            if not os.path.exists(full_path):
+                if rel_path in manifest:
+                    missing_required.append(manifest[rel_path])
+
+        if missing_required:
+            reply = QtWidgets.QMessageBox.warning(
+                self,
+                "Missing Files",
+                f"{len(missing_required)} required file(s) are missing from disk. Download them before proceeding?",
+                QtWidgets.QMessageBox.StandardButton.Yes
+                | QtWidgets.QMessageBox.StandardButton.No,
+            )
+            if reply == QtWidgets.QMessageBox.StandardButton.Yes:
+                self._start_download_batch(missing_required)
+                return
+
         self._callback()
 
     def register_done_execution(self, callback):
@@ -654,3 +730,31 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
 def _form_local_destination(base_dir, info):
     near_relative_local_path = info['datasetPath'].replace('files/', '')
     return os.path.join(base_dir, str(info['datasetId']), str(info['datasetVersion']), near_relative_local_path)
+
+
+def _load_manifest(output_dir):
+    manifest_path = os.path.join(output_dir, MANIFEST_FILENAME)
+    if os.path.exists(manifest_path):
+        try:
+            with open(manifest_path, 'r') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+def _save_manifest_entry(output_dir, item_data):
+    manifest = _load_manifest(output_dir)
+    local_dest = _form_local_destination(output_dir, item_data)
+    rel_path = os.path.relpath(local_dest, output_dir)
+
+    # Save metadata indexed by relative file path
+    manifest[rel_path] = item_data
+
+    manifest_path = os.path.join(output_dir, MANIFEST_FILENAME)
+    safe_makedirs(output_dir)
+    try:
+        with open(manifest_path, 'w') as f:
+            json.dump(manifest, f, indent=2)
+    except OSError as e:
+        print(f"Error updating download manifest: {e}")

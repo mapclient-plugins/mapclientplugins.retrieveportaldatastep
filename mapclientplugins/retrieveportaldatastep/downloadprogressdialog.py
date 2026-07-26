@@ -1,3 +1,4 @@
+import json
 import os.path
 
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QProgressBar
@@ -41,12 +42,13 @@ class DownloadProgressDialog(QDialog):
         self._update_progress_bar()
 
     @Slot(str)
-    def on_file_downloaded(self, file_path):
+    def on_file_downloaded(self, file_path, item_data_str):
+        item_data = json.loads(item_data_str)
         self._register_file_path(file_path)
         self._individual_progress[self._seen_file[file_path]] = 1
         self._update_progress_bar()
 
-        self._label.setText(f"Downloaded: {os.path.basename(file_path)}")
+        self._label.setText(f"Downloaded: {item_data.get('name', os.path.basename(file_path))}")
         if file_path == "error":
             self._errors += 1
 
