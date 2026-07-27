@@ -2,6 +2,8 @@ import base64
 import hashlib
 import json
 import os
+import pathlib
+
 import requests
 import threading
 
@@ -618,10 +620,13 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
                 missing_items.append(item_data)
 
         if missing_items:
+            missing_count = len(missing_items)
+            singular = missing_count == 1
             reply = QtWidgets.QMessageBox.question(
                 self,
                 "Restore Missing Cache",
-                f"Found {len(missing_items)} missing cached file(s) on disk. Would you like to restore them now?",
+                f"Could not find {missing_count} provided file{'' if singular else 's'} cached locally."
+                f" Would you like to restore {'it' if singular else 'them'} now?",
                 QtWidgets.QMessageBox.StandardButton.Yes
                 | QtWidgets.QMessageBox.StandardButton.No,
             )
@@ -747,9 +752,9 @@ def _save_manifest_entry(output_dir, item_data):
     manifest = _load_manifest(output_dir)
     local_dest = _form_local_destination(output_dir, item_data)
     rel_path = os.path.relpath(local_dest, output_dir)
-
-    # Save metadata indexed by relative file path
-    manifest[rel_path] = item_data
+    path_key = pathlib.PureWindowsPath(rel_path).as_posix()
+    # Save metadata indexed by relative file path.
+    manifest[path_key] = item_data
 
     manifest_path = os.path.join(output_dir, MANIFEST_FILENAME)
     safe_makedirs(output_dir)
