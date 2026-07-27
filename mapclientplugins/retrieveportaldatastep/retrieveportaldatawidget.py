@@ -333,7 +333,7 @@ class SearchResultFilterProxy(QtCore.QSortFilterProxyModel):
 
 class RetrievePortalDataWidget(QtWidgets.QWidget):
 
-    def __init__(self, output_dir, output_files, parent=None):
+    def __init__(self, output_dir, output_files, settings_filename, parent=None):
         QtWidgets.QWidget.__init__(self, parent)
 
         self._model = None
@@ -345,6 +345,7 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         self._completing = False
         self._dataset_id_completing = False
         self._output_dir = output_dir
+        self._settings_filename = settings_filename
 
         self._ui = Ui_RetrievePortalDataWidget()
         self._ui.setupUi(self)
@@ -603,7 +604,7 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
 
     def _check_and_restore_cache(self):
         """Scans manifest and provided files list to restore missing items."""
-        manifest = _load_manifest(self._output_dir)
+        manifest = _load_manifest(self._settings_filename)
         if not manifest:
             return
 
@@ -657,7 +658,7 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
         if local_destination != "error" and os.path.exists(local_destination):
             # Update cache manifest.
             item_data = json.loads(item_data_str)
-            _save_manifest_entry(self._output_dir, item_data)
+            _save_manifest_entry(self._output_dir, item_data, self._settings_filename)
 
             # Automatically populate output files list if not present.
             self._populate_output_list(local_destination)
@@ -704,7 +705,7 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
 
     def _done_button_clicked(self):
         # Validate all provided files exist before completing step
-        manifest = _load_manifest(self._output_dir)
+        manifest = _load_manifest(self._settings_filename)
         provided_files = self.get_output_files()
         missing_required = []
 
@@ -737,29 +738,30 @@ def _form_local_destination(base_dir, info):
     return os.path.join(base_dir, str(info['datasetId']), str(info['datasetVersion']), near_relative_local_path)
 
 
-def _load_manifest(output_dir):
-    manifest_path = os.path.join(output_dir, MANIFEST_FILENAME)
+def _load_manifest(manifest_path):
     if os.path.exists(manifest_path):
         try:
             with open(manifest_path, 'r') as f:
-                return json.load(f)
+                return json.load(f).get('manifest', {})
         except (json.JSONDecodeError, OSError):
             return {}
     return {}
 
 
-def _save_manifest_entry(output_dir, item_data):
-    manifest = _load_manifest(output_dir)
+def _save_manifest_entry(output_dir, item_data, manifest_path):
+    manifest = _load_manifest(manifest_path)
     local_dest = _form_local_destination(output_dir, item_data)
     rel_path = os.path.relpath(local_dest, output_dir)
     path_key = pathlib.PureWindowsPath(rel_path).as_posix()
     # Save metadata indexed by relative file path.
     manifest[path_key] = item_data
 
-    manifest_path = os.path.join(output_dir, MANIFEST_FILENAME)
     safe_makedirs(output_dir)
     try:
+        with open(manifest_path) as f:
+            all_content = json.load(f)
+        all_content.update({'manifest': manifest})
         with open(manifest_path, 'w') as f:
-            json.dump(manifest, f, indent=2)
+            json.dump(all_content, f, indent=2)
     except OSError as e:
         print(f"Error updating download manifest: {e}")

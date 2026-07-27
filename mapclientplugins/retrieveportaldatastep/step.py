@@ -73,7 +73,8 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         try:
             output_dir = self._determine_output_dir()
             output_files = self._get_output_files()
-            self._view = RetrievePortalDataWidget(output_dir, output_files)
+            settings_filename = self._settings_filename()
+            self._view = RetrievePortalDataWidget(output_dir, output_files, settings_filename)
             self._view.register_done_execution(self._done_execution)
             self._setCurrentWidget(self._view)
         finally:
@@ -132,5 +133,4 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
         self._configured = d.validate()
 
     def getAdditionalConfigFiles(self):
-        manifest_path = os.path.join(self._determine_output_dir(), MANIFEST_FILENAME)
-        return [self._settings_filename(), manifest_path]
+        return [self._settings_filename()]
