@@ -10,7 +10,6 @@ from PySide6 import QtGui, QtWidgets, QtCore
 
 from mapclient.mountpoints.workflowstep import WorkflowStepMountPoint
 from mapclientplugins.retrieveportaldatastep.configuredialog import ConfigureDialog
-from mapclientplugins.retrieveportaldatastep.definitions import MANIFEST_FILENAME
 from mapclientplugins.retrieveportaldatastep.retrieveportaldatawidget import RetrievePortalDataWidget
 
 

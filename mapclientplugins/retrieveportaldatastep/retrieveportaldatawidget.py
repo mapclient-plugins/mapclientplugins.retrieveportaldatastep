@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from mapclientplugins.retrieveportaldatastep.ui_retrieveportaldatawidget import Ui_RetrievePortalDataWidget
-from mapclientplugins.retrieveportaldatastep.definitions import DEFAULT_VALUE, DEFAULT_HEADERS, MANIFEST_FILENAME
+from mapclientplugins.retrieveportaldatastep.definitions import DEFAULT_VALUE, DEFAULT_HEADERS
 from mapclientplugins.retrieveportaldatastep.scicrunch_requests import create_filter_request, \
     form_scicrunch_match_request
 from mapclientplugins.retrieveportaldatastep.downloadprogressdialog import DownloadProgressDialog
