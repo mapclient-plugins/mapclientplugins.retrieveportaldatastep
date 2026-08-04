@@ -41,7 +41,7 @@ class ConfigureDialog(QtWidgets.QDialog):
         self._workflow_location = location
 
     def _make_connections(self):
-        self._ui.lineEdit0.textChanged.connect(self.validate)
+        self._ui.lineEdit0.textEdited.connect(self.validate)
         self._ui.pushButtonOutputDirectory.clicked.connect(self._directory_chooser_clicked)
 
     def _directory_chooser_clicked(self):
@@ -75,6 +75,7 @@ class ConfigureDialog(QtWidgets.QDialog):
         invalid configuration.
         """
         result = QtWidgets.QMessageBox.StandardButton.Yes
+        self._make_output_directory()
         if not self.validate():
             result = QtWidgets.QMessageBox.warning(
                 self, 'Invalid Configuration',
@@ -109,15 +110,19 @@ class ConfigureDialog(QtWidgets.QDialog):
 
         return dir_path
 
+    def _make_output_directory(self):
+        dir_path = self._output_location_abspath()
+        if not os.path.exists(dir_path) and (self._ui.comboBoxOutputDirectory.currentIndex() == 0 or self._ui.comboBoxOutputDirectory.currentIndex() == 1):
+            os.mkdir(dir_path)
+
     def _directory_valid(self):
         self._ui.comboBoxOutputDirectory.setItemText(0, self._local_output_directory())
         dir_path = self._output_location_abspath()
 
         output_directory_exists = os.path.isdir(dir_path)
-        if (self._ui.comboBoxOutputDirectory.currentIndex() == 0 or self._ui.comboBoxOutputDirectory.currentIndex() == 1) and not output_directory_exists:
-            os.mkdir(dir_path)
+        output_directory_exists_as_a_file = os.path.isfile(dir_path)
 
-        directory_valid = os.path.isdir(dir_path) and len(self._ui.comboBoxOutputDirectory.currentText())
+        directory_valid = (output_directory_exists or not output_directory_exists_as_a_file) and len(self._ui.comboBoxOutputDirectory.currentText())
         self._ui.comboBoxOutputDirectory.setStyleSheet(DEFAULT_STYLE_SHEET if directory_valid else INVALID_STYLE_SHEET)
 
         return directory_valid
