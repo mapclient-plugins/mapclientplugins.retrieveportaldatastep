@@ -74,6 +74,7 @@ class RetrievePortalDataStep(WorkflowStepMountPoint):
             output_files = self._get_output_files()
             settings_filename = self._settings_filename()
             self._view = RetrievePortalDataWidget(output_dir, output_files, settings_filename)
+            self._view.set_identifier(self._config['identifier'])
             self._view.register_done_execution(self._done_execution)
             self._setCurrentWidget(self._view)
         finally:

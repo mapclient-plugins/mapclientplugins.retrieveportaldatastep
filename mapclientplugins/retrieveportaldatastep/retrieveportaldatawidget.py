@@ -732,6 +732,9 @@ class RetrievePortalDataWidget(QtWidgets.QWidget):
     def register_done_execution(self, callback):
         self._callback = callback
 
+    def set_identifier(self, identifier):
+        self._ui.manifestGroupBox.setTitle(f"Identifier: {identifier}")
+
 
 def _form_local_destination(base_dir, info):
     near_relative_local_path = info['datasetPath'].replace('files/', '')
@@ -765,3 +768,4 @@ def _save_manifest_entry(output_dir, item_data, manifest_path):
             json.dump(all_content, f, indent=2)
     except OSError as e:
         print(f"Error updating download manifest: {e}")
+
